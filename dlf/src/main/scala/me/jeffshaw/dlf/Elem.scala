@@ -1,4 +1,4 @@
-package dlf
+package me.jeffshaw.dlf
 
 sealed trait Elem {
 

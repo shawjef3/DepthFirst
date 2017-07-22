@@ -1,4 +1,4 @@
-package dlf
+package me.jeffshaw.dlf
 
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable
@@ -9,7 +9,7 @@ case class State[F[_], In, Out](
 )(implicit canBuildFrom: CanBuildFrom[_, Out, F[Out]]) {
 
   /*
-  A benchmark between List and List showed that List is faster.
+  A benchmark between List and Vector showed that List is faster.
    */
   var stack: List[Elem] = Nil
 

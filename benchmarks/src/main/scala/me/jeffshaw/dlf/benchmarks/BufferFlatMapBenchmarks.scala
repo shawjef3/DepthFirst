@@ -1,8 +1,8 @@
 package me.jeffshaw.dlf.benchmarks
 
 import scala.collection.mutable.Buffer
-import dlf.{Op, State}
 import java.util.concurrent.TimeUnit
+import me.jeffshaw.dlf.{State, Op}
 import org.openjdk.jmh.annotations.{State => JmhState, _}
 
 @JmhState(Scope.Thread)

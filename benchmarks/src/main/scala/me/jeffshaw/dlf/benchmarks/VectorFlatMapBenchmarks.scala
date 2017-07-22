@@ -1,18 +1,18 @@
 package me.jeffshaw.dlf.benchmarks
 
-import dlf.{Op, State}
 import java.util.concurrent.TimeUnit
+import me.jeffshaw.dlf.{Op, State}
 import org.openjdk.jmh.annotations.{State => JmhState, _}
 
 @JmhState(Scope.Thread)
 class VectorFlatMapBenchmarks {
 
-  @Param(Array("0", "1", "16", "128", "1024", "16384", "131072", "1048576"))
+  @Param(Array("0", "1", "16", "128", "1024", "16384"))
   var valueCount: Int = _
 
   var values: Vector[Int] = _
 
-  @Param(Array("1", "16", "32", "64", "128"))
+  @Param(Array("1", "16", "32", "64"))
   var iterationCount: Int = _
 
   @Setup(Level.Iteration)

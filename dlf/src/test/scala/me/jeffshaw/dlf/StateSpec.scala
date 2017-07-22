@@ -1,4 +1,4 @@
-package dlf
+package me.jeffshaw.dlf
 
 import org.scalacheck.Gen
 import org.scalatest.FunSuite

@@ -42,5 +42,5 @@ class VectorFlatMapBenchmarks {
 }
 
 object VectorFlatMapBenchmarks {
-  val values = Vector.fill(16777216)(util.Random.nextInt())
+  val values = Vector.fill(16384)(util.Random.nextInt())
 }

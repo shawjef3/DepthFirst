@@ -20,55 +20,46 @@ case class State[F[_], In, Out](
 
   def step(): Unit = {
     stack match {
-      case Elem.Filter(f, fs, Left(value))::ss =>
-        if (f(value))
+      case Elem.Filter(f, fs, values)::ss =>
+        if (values.hasNext) {
+          val value = values.next()
+          if (f(value))
+            fs match {
+              case nextF::remainingFs =>
+                stack = nextF.toElem(remainingFs, Iterator(value))::stack
+
+              case Nil =>
+                results += value
+            }
+        } else stack = ss
+
+      case Elem.FlatMap(f, fs, values)::ss =>
+        if (values.hasNext) {
+          val value = values.next()
+          val fResults = f(value)
+
           fs match {
             case nextF::remainingFs =>
-              stack = nextF.toElem(remainingFs, Iterator(value))::ss
+              stack = nextF.toElem(remainingFs, fResults.toIterator)::stack
 
             case Nil =>
-              results += value
-              stack = ss
-          } else stack = ss
+              results ++= fResults
+          }
+        } else stack = ss
 
-      case Elem.Filter(f, fs, Right(remaining))::ss =>
-        if (remaining.hasNext)
-          stack = Elem.Filter(f, fs, Left(remaining.next))::stack
-        else stack = ss
+      case Elem.Map(f, fs, values)::ss =>
+        if (values.hasNext) {
+          val value = values.next()
+          val result = f(value)
 
-      case Elem.FlatMap(f, fs, Left(value))::ss =>
-        val fResults = f(value)
+          fs match {
+            case nextF::remainingFs =>
+              stack = nextF.toElem(remainingFs, Iterator(result))::stack
 
-        fs match {
-          case nextF::remainingFs =>
-            stack = nextF.toElem(remainingFs, fResults.toIterator)::ss
-
-          case Nil =>
-            results ++= fResults
-            stack = ss
-        }
-
-      case Elem.FlatMap(f, fs, Right(remaining))::ss =>
-        if (remaining.hasNext)
-          stack = Elem.FlatMap(f, fs, Left(remaining.next))::stack
-        else stack = ss
-
-      case Elem.Map(f, fs, Left(value))::ss =>
-        val result = f(value)
-
-        fs match {
-          case nextF::remainingFs =>
-            stack = nextF.toElem(remainingFs, Iterator(result))::ss
-
-          case Nil =>
-            results += result
-            stack = ss
-        }
-
-      case Elem.Map(f, fs, Right(remaining))::ss =>
-        if (remaining.hasNext)
-          stack = Elem.Map(f, fs, Left(remaining.next))::stack
-        else stack = ss
+            case Nil =>
+              results += result
+          }
+        } else stack = ss
 
       case Nil =>
 

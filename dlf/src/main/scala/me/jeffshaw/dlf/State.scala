@@ -6,7 +6,8 @@ import scala.collection.mutable
 case class State[F[_], In, Out](
   op: Op,
   ops: Op*
-)(implicit canBuildFrom: CanBuildFrom[_, Out, F[Out]]) {
+)(implicit canBuildFrom: CanBuildFrom[_, Out, F[Out]]
+) {
 
   /*
   A benchmark between List and Vector showed that List is faster.
@@ -71,7 +72,7 @@ case class State[F[_], In, Out](
   def run(values: Iterable[In]): F[Out] = {
     stack = List(op.toElem(ops.toList, values.toIterator))
 
-    while(stack.nonEmpty)
+    while (stack.nonEmpty)
       step()
 
     results.result().asInstanceOf[F[Out]]

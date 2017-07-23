@@ -9,7 +9,7 @@ object Op {
     override def toElem(ops: List[Op], values: Iterator[Any]): Elem =
       Elem.Map(f, ops, values)
   }
-  case class FlatMap(f: Any => Traversable[Any]) extends Op {
+  case class FlatMap(f: Any => Iterable[Any]) extends Op {
     override def toElem(ops: List[Op], values: Iterator[Any]): Elem =
       Elem.FlatMap(f, ops, values)
   }

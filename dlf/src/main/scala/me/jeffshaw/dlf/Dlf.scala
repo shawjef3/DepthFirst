@@ -2,38 +2,38 @@ package me.jeffshaw.dlf
 
 import scala.collection.generic.CanBuildFrom
 
-class Dlf[F0[_] <: Iterable[_], In, F1[_] <: Iterable[_], Out] private (
-  private val values: F0[In],
+class Dlf[F[_] <: Iterable[_], In, Out] private (
+  private val values: F[In],
   private val ops: List[Op]
-)(implicit innerBuilder: CanBuildFrom[_, Out, F1[Out]]
+)(implicit innerBuilder: CanBuildFrom[_, Out, F[Out]]
 ) {
 
-  private def build(): State[F1, In, Out] = {
+  lazy val results: F[Out] = {
     val revOps = ops.reverse
-    State[F1, In, Out](revOps.head, revOps.tail: _*)
+    State.run[F, In, Out](values.asInstanceOf[Iterable[In]], revOps.head, revOps.tail: _*)
   }
 
-  lazy val results: F1[Out] = {
-    build().run(values.asInstanceOf[Iterable[In]])
+  def map[NextOut](f: Out => NextOut)(implicit innerBuilder: CanBuildFrom[_, NextOut, F[NextOut]]): Dlf[F, In, NextOut] = {
+    new Dlf[F, In, NextOut](values, Op.Map(f.asInstanceOf[Any => Any]) :: ops)
   }
 
-  def map[F2[_] <: Iterable[_], NextOut](f: Out => NextOut)(implicit canBuildFrom: CanBuildFrom[_, NextOut, F2[NextOut]]): Dlf[F0, In, F2, NextOut] = {
-    new Dlf[F0, In, F2, NextOut](values, Op.Map(f.asInstanceOf[Any => Any]) :: ops)
+//  def flatMap[G[_] <: Iterable[_], NextOut](f: Out => Dlf[G, Out, NextOut])(implicit canBuildFrom: CanBuildFrom[_, NextOut, G[NextOut]]): Dlf[G, In, NextOut] = {
+//    new Dlf[G, In, NextOut](values, Op.FlatMap(f.asInstanceOf[Any => Iterable[Any]]) :: ops)
+//  }
+
+  def flatMap[NextOut](f: Out => F[NextOut])(implicit canBuildFrom: CanBuildFrom[_, NextOut, F[NextOut]]): Dlf[F, In, NextOut] = {
+    new Dlf[F, In, NextOut](values, Op.FlatMap(f.asInstanceOf[Any => Iterable[Any]]) :: ops)
   }
 
-  def flatMap[F2[_] <: Iterable[_], NextOut](f: Out => F2[NextOut])(implicit canBuildFrom: CanBuildFrom[_, NextOut, F2[NextOut]]): Dlf[F0, In, F2, NextOut] = {
-    new Dlf[F0, In, F2, NextOut](values, Op.FlatMap(f.asInstanceOf[Any => Iterable[Any]]) :: ops)
-  }
-
-  def withFilter[F2[_] <: Iterable[_]](f: Out => Boolean)(implicit canBuildFrom: CanBuildFrom[_, Out, F2[Out]]): Dlf[F0, In, F2, Out] = {
-    new Dlf[F0, In, F2, Out](values, Op.Filter(f.asInstanceOf[Any => Boolean]) :: ops)
+  def withFilter(f: Out => Boolean): Dlf[F, In, Out] = {
+    new Dlf[F, In, Out](values, Op.Filter(f.asInstanceOf[Any => Boolean]) :: ops)
   }
 
 }
 
 object Dlf {
 
-  def apply[F0[_] <: Iterable[_], In](values: F0[In])(implicit innerBuilder: CanBuildFrom[_, In, F0[In]]): Dlf[F0, In, F0, In] =
-    new Dlf[F0, In, F0, In](values, List())
+  def apply[F[_] <: Iterable[_], In](values: F[In])(implicit innerBuilder: CanBuildFrom[_, In, F[In]]): Dlf[F, In, In] =
+    new Dlf[F, In, In](values, List())
 
 }

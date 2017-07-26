@@ -1,11 +1,9 @@
 package me.jeffshaw.dlf.benchmarks
 
-import java.util.Collections
 import java.util.concurrent.TimeUnit
 import java.util.stream.{Collectors, IntStream}
 import me.jeffshaw.dlf.{Op, State}
 import org.openjdk.jmh.annotations.{State => JmhState, _}
-import scala.collection.JavaConverters._
 
 @JmhState(Scope.Thread)
 class VectorFlatMapBenchmarks {
@@ -43,7 +41,7 @@ class VectorFlatMapBenchmarks {
   @BenchmarkMode(Array(Mode.AverageTime))
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
   def dlf(): Unit = {
-    State.run(values, ops.head, ops.tail: _*)
+    State.run[Vector, Int, Int](values, ops.head, ops.tail: _*)
   }
 
 //  @Benchmark

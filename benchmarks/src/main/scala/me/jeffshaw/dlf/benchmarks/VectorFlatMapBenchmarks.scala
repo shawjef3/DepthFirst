@@ -41,7 +41,7 @@ class VectorFlatMapBenchmarks {
   @BenchmarkMode(Array(Mode.AverageTime))
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
   def dlf(): Unit = {
-    State.run[Vector, Int, Int](values, ops.head, ops.tail: _*)
+    State.run[Int, Int, Vector[Int]](values, ops.head, ops.tail: _*)
   }
 
 //  @Benchmark

@@ -1,57 +1,40 @@
 package me.jeffshaw.dlf
 
-import scala.collection.generic.CanBuildFrom
+import scala.collection.GenTraversable
+import scala.collection.generic.{CanBuildFrom, HasNewBuilder}
 
-class Dlf[In, G[_] <: Iterable[_], Out] private (
-  private val values: Iterable[In],
+class Dlf[In, Out, This] private (
+  private val values: GenTraversable[In],
   private val ops: List[Op]
-)(implicit innerBuilder: CanBuildFrom[_, Out, G[Out]]
+)(implicit val innerBuilder: CanBuildFrom[_, Out, This]
 ) {
 
-  lazy val results: G[Out] = {
+  lazy val results: This = {
     val revOps = ops.reverse
-    State.run[G, In, Out](values.asInstanceOf[Iterable[In]], revOps.head, revOps.tail: _*)
+    State.run[In, Out, This](values, revOps.head, revOps.tail: _*)
   }
 
-  def map[NextOut](f: Out => NextOut)(implicit innerBuilder: CanBuildFrom[_, NextOut, G[NextOut]]): Dlf[In, G, NextOut] = {
-    new Dlf[In, G, NextOut](values, Op.Map(f.asInstanceOf[Any => Any]) :: ops)
+  def map[NextOut, That](f: Out => NextOut)(implicit innerBuilder: CanBuildFrom[_, NextOut, That]): Dlf[In, NextOut, That] = {
+    new Dlf[In, NextOut, That](values, Op.Map(f.asInstanceOf[Any => Any])::ops)
   }
 
-  def flatMap[G0[_] <: Iterable[_], NextOut](f: Dlf.FlatMappable[Out, G0, NextOut])(implicit canBuildFrom: CanBuildFrom[_, NextOut, G[NextOut]]): Dlf[In, G, NextOut] = {
-    f match {
-      case Dlf.FlatMappable.D(f) =>
-        new Dlf[In, G, NextOut](values, Op.DlfFlatMap(f.asInstanceOf[Any => Dlf[Any, Iterable, Any]]) :: ops)
-      case Dlf.FlatMappable.F(f) =>
-        new Dlf[In, G, NextOut](values, Op.FlatMap(f.asInstanceOf[Any => Iterable[Any]]) :: ops)
-    }
+  def flatMap[NextOut, That](f: Out => GenTraversable[NextOut])(implicit innerBuilder: CanBuildFrom[_, NextOut, That]): Dlf[In, NextOut, That] = {
+    new Dlf[In, NextOut, That](values, Op.FlatMap(f.asInstanceOf[Any => GenTraversable[Any]])::ops)
   }
 
-  def withFilter(f: Out => Boolean): Dlf[In, G, Out] = {
-    new Dlf[In, G, Out](values, Op.Filter(f.asInstanceOf[Any => Boolean]) :: ops)
+  def flatMap[NextOut, That](f: Out => Dlf[Out, NextOut, That])(implicit innerBuilder: CanBuildFrom[_, NextOut, That], d: DummyImplicit): Dlf[In, NextOut, That] = {
+    new Dlf[In, NextOut, That](values, Op.DlfFlatMap(f.asInstanceOf[Any => Dlf[Any, Any, That]])::ops)
+  }
+
+  def withFilter(f: Out => Boolean): Dlf[In, Out, This] = {
+    new Dlf[In, Out, This](values, Op.Filter(f.asInstanceOf[Any => Boolean]) :: ops)
   }
 
 }
 
 object Dlf {
 
-  def apply[F[_] <: Iterable[_], In](values: F[In])(implicit innerBuilder: CanBuildFrom[_, In, F[In]]): Dlf[In, F, In] =
-    new Dlf[In, F, In](values.toIterable.asInstanceOf[Iterable[In]], List())
-
-  sealed trait FlatMappable[Out, G[_] <: Iterable[_], NextOut]
-
-  object FlatMappable {
-    case class D[Out, G[_] <: Iterable[_], NextOut](f: Out => Dlf[Out, G, NextOut]) extends FlatMappable[Out, G, NextOut]
-
-    case class F[Out, G[_] <: Iterable[_], NextOut](f: Out => G[NextOut]) extends FlatMappable[Out, G, NextOut]
-
-    implicit def toD[Out, G[_] <: Iterable[_], NextOut](f: Out => Dlf[Out, G, NextOut]): FlatMappable[Out, G, NextOut] =
-      D(f)
-
-    implicit def toF[Out, G0[_] <: Iterable[_], NextOut](f: Out => G0[NextOut]): FlatMappable[Out, G0, NextOut] =
-      F(f)
-
-  }
-
-
+  def apply[In, This](values: GenTraversable[In])(implicit innerBuilder: CanBuildFrom[_, In, This]): Dlf[In, In, This] =
+    new Dlf[In, In, This](values, List())
 
 }

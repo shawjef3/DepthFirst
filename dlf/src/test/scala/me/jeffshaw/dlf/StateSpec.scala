@@ -14,7 +14,7 @@ class StateSpec extends FunSuite with GeneratorDrivenPropertyChecks {
           if value == 0
         } yield value
 
-      val actual = State.run[Vector, Int, Int](values, Op.Filter(x => x == 0))
+      val actual = State.run[Int, Int, Vector[Int]](values, Op.Filter(x => x == 0))
 
       assertResult(expected)(actual)
     }
@@ -28,7 +28,7 @@ class StateSpec extends FunSuite with GeneratorDrivenPropertyChecks {
           value <- Vector(value, value + 1)
         } yield value
 
-      val actual = State.run[Vector, Int, Int](values, Op.FlatMap((x: Any) => Vector(x, x.asInstanceOf[Int] + 1)))
+      val actual = State.run[Int, Int, Vector[Int]](values, Op.FlatMap((x: Any) => Vector(x, x.asInstanceOf[Int] + 1)))
 
       assertResult(expected)(actual)
     }
@@ -41,7 +41,7 @@ class StateSpec extends FunSuite with GeneratorDrivenPropertyChecks {
           value <- values
         } yield value + 1
 
-      val actual = State.run[Vector, Int, Int](values, Op.Map((x: Any) => x.asInstanceOf[Int] + 1))
+      val actual = State.run[Int, Int, Vector[Int]](values, Op.Map((x: Any) => x.asInstanceOf[Int] + 1))
 
       assertResult(expected)(actual)
     }

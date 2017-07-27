@@ -36,7 +36,7 @@ class BufferFlatMapBenchmarks {
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
   def dlf(): Unit = {
     val op = Op.FlatMap(x => Buffer(x))
-    State.run [Buffer, Int, Int](values, op, Seq.fill(iterationCount - 1)(op): _*)
+    State.run[Int, Int, Buffer[Int]](values, op, Seq.fill(iterationCount - 1)(op): _*)
   }
 
 }

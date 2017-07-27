@@ -1,15 +1,15 @@
 package me.jeffshaw.dlf
 
 import scala.collection.generic.CanBuildFrom
-import scala.collection.mutable
+import scala.collection.{GenTraversable, mutable}
 
 object State {
-  def run[F[_], In, Out](
-    values: Iterable[In],
+  def run[In, Out, That](
+    values: GenTraversable[In],
     op: Op,
     ops: Op*
-  )(implicit canBuildFrom: CanBuildFrom[_, Out, F[Out]]
-  ): F[Out] = {
+  )(implicit canBuildFrom: CanBuildFrom[_, Out, That]
+  ): That = {
     /*
     A benchmark between List and Vector showed that List is faster.
      */
@@ -18,15 +18,15 @@ object State {
     /*
     As we go through the stack, we lose type information.
      */
-    val results = canBuildFrom().asInstanceOf[mutable.Builder[Any, F[Any]]]
+    val results = canBuildFrom()
 
     while (stack.nonEmpty)
-      stack = step(stack, results)
+      stack = step(stack, results.asInstanceOf[mutable.Builder[Any, That]])
 
-    results.result().asInstanceOf[F[Out]]
+    results.result()
   }
 
-  def step[F[_]](stack: List[Elem], results: mutable.Builder[Any, F[Any]]): List[Elem] = {
+  def step[That](stack: List[Elem], results: mutable.Builder[Any, That]): List[Elem] = {
     stack match {
       case head::ss =>
         val values = head.values
@@ -54,9 +54,13 @@ object State {
                   nextF.toElem(remainingFs, fResults.toIterator)::stack
 
                 case Nil =>
-                  results ++= fResults
+                  results ++= fResults.toIterator
                   stack
               }
+
+            case Elem.DlfFlatMap(f, innerOps, innerValues) =>
+              //todo: make the stack List[List[Elem]]
+              ???
 
             case Elem.Map(f, fs, _) =>
               val result = f(value)
@@ -116,6 +120,10 @@ object State {
                   case Nil =>
                     fResults.toStream
                 }
+
+              case Elem.DlfFlatMap(f, innerOps, innerValues) =>
+                //todo: make the stack List[List[Elem]]
+                ???
 
               case Elem.Map(f, fs, _) =>
                 val result = f(value)

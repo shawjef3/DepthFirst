@@ -1,5 +1,7 @@
 package me.jeffshaw.dlf
 
+import scala.collection.GenTraversable
+
 sealed trait Elem {
   val ops: List[Op]
 
@@ -8,8 +10,8 @@ sealed trait Elem {
 
 object Elem {
 
-  case class DlfFlatMap(
-    f: Any => Dlf[Any, Iterable, Any],
+  case class DlfFlatMap[That](
+    f: Any => Dlf[Any, Any, That],
     override val ops: List[Op],
     override val values: Iterator[Any]
   ) extends Elem
@@ -21,7 +23,7 @@ object Elem {
   ) extends Elem
 
   case class FlatMap(
-    f: Any => Traversable[Any],
+    f: Any => GenTraversable[Any],
     override val ops: List[Op],
     override val values: Iterator[Any]
   ) extends Elem

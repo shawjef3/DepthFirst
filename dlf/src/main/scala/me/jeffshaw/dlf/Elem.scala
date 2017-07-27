@@ -9,7 +9,7 @@ sealed trait Elem {
 object Elem {
 
   case class DlfFlatMap(
-    f: Any => Dlf[Iterable, Any, Iterable, Any],
+    f: Any => Dlf[Any, Iterable, Any],
     override val ops: List[Op],
     override val values: Iterator[Any]
   ) extends Elem

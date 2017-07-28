@@ -12,120 +12,16 @@ object State {
   ): That = {
     var stepResult = Result(List(op.toElem(ops.toList, values.toIterator)), None)
 
-    /*
-    As we go through the stack, we lose type information.
-     */
     val results = canBuildFrom()
 
     while (!stepResult.isFinished) {
-      stepResult = step(stepResult.stack)
+      stepResult = stepResult.step
        for (values <- stepResult.maybeValues) {
          results ++= values
        }
     }
 
     results.result()
-  }
-
-//  def step[That](stack: List[List[Elem]], results: mutable.Builder[Any, That]): List[List[Elem]] = {
-//    stack match {
-//      case head::ss =>
-//        innerStep(head, results) match {
-//          case Nil =>
-//            ss
-//          case otherwise =>
-//            otherwise::ss
-//        }
-//      case Nil =>
-//        Nil
-//    }
-//  }
-
-  def step[Out, That](stack: List[Elem]): State.Result[Out] = {
-    stack match {
-      case head::ss =>
-        val values = head.values
-
-        if (values.hasNext) {
-          val value = values.next()
-
-          head match {
-            case Elem.Filter(f, fs, _) =>
-              if (f(value))
-                fs match {
-                  case nextF::remainingFs =>
-                    State.Result(
-                      stack = nextF.toElem(remainingFs, Iterator(value))::stack,
-                      maybeValues = None
-                    )
-
-                  case Nil =>
-                    State.Result(
-                      stack = stack,
-                      maybeValues = Some(Result.Value.One(value.asInstanceOf[Out]))
-                    )
-                } else {
-                State.Result(
-                  stack = stack,
-                  maybeValues = None
-                )
-              }
-
-            case Elem.FlatMap(f, fs, _) =>
-              val fResults = f(value)
-
-              fs match {
-                case nextF::remainingFs =>
-                  Result(
-                    stack = nextF.toElem(remainingFs, fResults.toIterator)::stack,
-                    maybeValues = None
-                  )
-
-                case Nil =>
-                  Result(
-                    stack = stack,
-                    maybeValues = Some(Result.Value.Many(fResults.asInstanceOf[TraversableOnce[Out]]))
-                  )
-              }
-
-            case Elem.DlfFlatMap(f, innerOp::innerOps, innerValues) =>
-              //todo: make the stack List[List[Elem]]
-              //run the inner ops on the inner values
-              //
-//              innerOp.toElem(innerOps, innerValues)::
-              ???
-
-            case Elem.DlfFlatMap(f, Nil, innerValue) =>
-//              Result(
-//                stack = ss,
-//                values = None
-//              )
-              ???
-
-            case Elem.Map(f, fs, _) =>
-              val result = f(value)
-
-              fs match {
-                case nextF::remainingFs =>
-                  Result(
-                    stack = nextF.toElem(remainingFs, Iterator(result))::stack,
-                    maybeValues = None
-                  )
-
-                case Nil =>
-                  Result(
-                    stack = stack,
-                    maybeValues = Some(Result.Value.One(result.asInstanceOf[Out]))
-                  )
-              }
-
-          }
-
-        } else Result(stack = ss, maybeValues = None)
-
-      case Nil =>
-        Result(stack = Nil, maybeValues = None)
-    }
   }
 
   def iterator[In, Out](
@@ -140,7 +36,7 @@ object State {
 
       override def hasNext: Boolean = {
         while (!innerIterator.hasNext && !stepResult.isFinished) {
-          stepResult = step(stepResult.stack)
+          stepResult = stepResult.step
           innerIterator = stepResult.valuesIterator
         }
 
@@ -162,6 +58,92 @@ object State {
     def isFinished: Boolean = stack.isEmpty
 
     def valuesIterator: Iterator[Out] = maybeValues.map(_.toIterator).getOrElse(Iterator())
+
+    def step: State.Result[Out] = {
+      stack match {
+        case head::ss =>
+          val values = head.values
+
+          if (values.hasNext) {
+            val value = values.next()
+
+            head match {
+              case Elem.Filter(f, fs, _) =>
+                if (f(value))
+                  fs match {
+                    case nextF::remainingFs =>
+                      State.Result(
+                        stack = nextF.toElem(remainingFs, Iterator(value))::stack,
+                        maybeValues = None
+                      )
+
+                    case Nil =>
+                      State.Result(
+                        stack = stack,
+                        maybeValues = Some(Result.Value.One(value.asInstanceOf[Out]))
+                      )
+                  } else {
+                  State.Result(
+                    stack = stack,
+                    maybeValues = None
+                  )
+                }
+
+              case Elem.FlatMap(f, fs, _) =>
+                val fResults = f(value)
+
+                fs match {
+                  case nextF::remainingFs =>
+                    Result(
+                      stack = nextF.toElem(remainingFs, fResults.toIterator)::stack,
+                      maybeValues = None
+                    )
+
+                  case Nil =>
+                    Result(
+                      stack = stack,
+                      maybeValues = Some(Result.Value.Many(fResults.asInstanceOf[TraversableOnce[Out]]))
+                    )
+                }
+
+              case Elem.DlfFlatMap(f, innerOp::innerOps, innerValues) =>
+                //todo: make the stack List[List[Elem]]
+                //run the inner ops on the inner values
+                //
+                //              innerOp.toElem(innerOps, innerValues)::
+                ???
+
+              case Elem.DlfFlatMap(f, Nil, innerValue) =>
+                Result(
+                  stack = ss,
+                  maybeValues = None
+                )
+
+              case Elem.Map(f, fs, _) =>
+                val result = f(value)
+
+                fs match {
+                  case nextF::remainingFs =>
+                    Result(
+                      stack = nextF.toElem(remainingFs, Iterator(result))::stack,
+                      maybeValues = None
+                    )
+
+                  case Nil =>
+                    Result(
+                      stack = stack,
+                      maybeValues = Some(Result.Value.One(result.asInstanceOf[Out]))
+                    )
+                }
+
+            }
+
+          } else Result(stack = ss, maybeValues = None)
+
+        case Nil =>
+          Result(stack = Nil, maybeValues = None)
+      }
+    }
   }
 
   object Result {

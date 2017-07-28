@@ -1,6 +1,9 @@
 package me.jeffshaw.dlf
 
 sealed trait Op {
+  /*
+  As we go through the stack, we lose type information.
+   */
   def toElem(ops: List[Op], values: Iterator[Any]): Elem
 }
 

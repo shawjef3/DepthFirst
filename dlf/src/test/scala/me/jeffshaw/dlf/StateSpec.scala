@@ -47,10 +47,10 @@ class StateSpec extends FunSuite with GeneratorDrivenPropertyChecks {
     }
   }
 
-  test("stream") {
-    val actual = State.stream[Int, Int](Vector(1,2,3), Op.Map((x: Any) => x.asInstanceOf[Int] + 1))
+  test("iterator") {
+    val actual = State.iterator[Int, Int](Vector(1,2,3), Op.Map((x: Any) => x.asInstanceOf[Int] + 1)).toVector
 
-    assertResult(Stream(2,3,4))(actual)
+    assertResult(Vector(2,3,4))(actual)
   }
 
 }

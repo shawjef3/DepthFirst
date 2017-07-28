@@ -206,25 +206,4 @@ object State {
       }
     }
   }
-
-  sealed trait Results[Out, That] {
-    def +=(elem: Out): Unit
-
-    def ++=(elems: TraversableOnce[Out]): Unit
-
-    def result(): That
-  }
-
-  object Results {
-    def valueOf[Out, That](builder: mutable.Builder[Out, That]): Results[Out, That] =
-      new Results[Out, That] {
-        override def +=(elem: Out): Unit =
-          builder += elem
-
-        override def ++=(elems: TraversableOnce[Out]): Unit =
-          builder ++= elems
-
-        override def result(): That = builder.result()
-      }
-  }
 }

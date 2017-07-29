@@ -1,6 +1,6 @@
 package me.jeffshaw.dlf
 
-import scala.collection.generic.{CanBuildFrom, HasNewBuilder}
+import scala.collection.generic.CanBuildFrom
 
 class Dlf[In, Out, This] private (
   private val values: TraversableOnce[In],
@@ -11,6 +11,11 @@ class Dlf[In, Out, This] private (
   lazy val results: This = {
     val revOps = ops.reverse
     State.run[In, Out, This](values, revOps.head, revOps.tail: _*)
+  }
+
+  lazy val iterator: Iterator[Out] = {
+    val revOps = ops.reverse
+    State.iterator[In, Out](values.toIterable, revOps.head, revOps.tail: _*)
   }
 
   def map[NextOut, That](f: Out => NextOut)(implicit innerBuilder: CanBuildFrom[_, NextOut, That]): Dlf[In, NextOut, That] = {

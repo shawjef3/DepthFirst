@@ -1,7 +1,6 @@
 package me.jeffshaw.dlf
 
 import scala.collection.generic.CanBuildFrom
-import scala.collection.mutable
 
 object State {
   def run[In, Out, That](
@@ -106,18 +105,23 @@ object State {
                     )
                 }
 
-              case Elem.DlfFlatMap(f, innerOp::innerOps, innerValues) =>
-                //todo: make the stack List[List[Elem]]
-                //run the inner ops on the inner values
-                //
-                //              innerOp.toElem(innerOps, innerValues)::
-                ???
+              case Elem.DlfFlatMap(f, fs, _) =>
+                val innerDlf = f(value)
+                val fResults = innerDlf.iterator
 
-              case Elem.DlfFlatMap(f, Nil, innerValue) =>
-                Result(
-                  stack = ss,
-                  maybeValues = None
-                )
+                fs match {
+                  case nextF::remainingFs =>
+                    Result(
+                      stack = nextF.toElem(remainingFs, fResults)::stack,
+                      maybeValues = None
+                    )
+
+                  case Nil =>
+                    Result(
+                      stack = stack,
+                      maybeValues = Some(Result.Value.Many(fResults.toTraversable.asInstanceOf[TraversableOnce[Out]]))
+                    )
+                }
 
               case Elem.Map(f, fs, _) =>
                 val result = f(value)

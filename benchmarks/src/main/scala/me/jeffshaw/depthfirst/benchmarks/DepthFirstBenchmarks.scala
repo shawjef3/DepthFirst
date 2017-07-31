@@ -15,8 +15,15 @@ class DepthFirstBenchmarks {
 
   var valuesStream: Stream[Int] = _
 
+  var valuesArray: Array[Int] = _
+
+  var valuesBoxedArray: Array[Integer] = _
+
   //Not a var, because java streams can't be reused.
-  def javaValues: java.util.stream.IntStream = IntStream.of(values: _*)
+  def javaValues: java.util.stream.IntStream = IntStream.of(valuesArray: _*)
+
+  def javaBoxedValues: java.util.stream.Stream[Integer] =
+    java.util.Arrays.stream(valuesBoxedArray)
 
   var ops: Seq[Op] = _
 
@@ -27,6 +34,8 @@ class DepthFirstBenchmarks {
   def setup(): Unit = {
     values = DepthFirstBenchmarks.values.take(valueCount)
     valuesStream = values.toStream
+    valuesArray = values.toArray
+    valuesBoxedArray = valuesArray.map(new Integer(_))
     ops = Seq.fill(iterationCount)(Op.FlatMap(x => Vector(x)))
   }
 
@@ -59,13 +68,31 @@ class DepthFirstBenchmarks {
     DepthFirst.iterator[Int, Int](values, ops.head, ops.tail: _*).toVector
   }
 
-//  @Benchmark
+  @Benchmark
+  @BenchmarkMode(Array(Mode.AverageTime))
+  @OutputTimeUnit(TimeUnit.MICROSECONDS)
+  def depthFirstArray(): Unit = {
+    DepthFirst.iterator[Int, Int](valuesArray, ops.head, ops.tail: _*).toArray
+  }
+
+  @Benchmark
   @BenchmarkMode(Array(Mode.AverageTime))
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
   def javaStream(): Unit = {
     var result = javaValues
     for (i <- 1 to iterationCount) {
       result = result.flatMap((x: Int) => IntStream.of(x))
+    }
+    result.toArray()
+  }
+
+  @Benchmark
+  @BenchmarkMode(Array(Mode.AverageTime))
+  @OutputTimeUnit(TimeUnit.MICROSECONDS)
+  def javaBoxedStream(): Unit = {
+    var result = javaBoxedValues
+    for (i <- 1 to iterationCount) {
+      result = result.flatMap((x: Integer) => java.util.stream.Stream.of[Integer](x))
     }
     result.toArray()
   }

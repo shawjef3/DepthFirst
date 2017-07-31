@@ -47,23 +47,16 @@ object DepthFirst {
     ops: Op*
   )(implicit canBuildFrom: CanBuildFrom[_, Out, That]
   ): That = {
-    var stepResult = Result(List(op.toElem(ops.toList, values.toIterator)), None)
-
     val results = canBuildFrom()
 
-    while (!stepResult.isFinished) {
-      stepResult = stepResult.step
-      for (values <- stepResult.maybeValues) {
-        results ++= values
-      }
-    }
+    results ++= iterator(values, op, ops: _*)
 
     results.result()
   }
 
 
   def iterator[In, Out](
-    values: Iterable[In],
+    values: TraversableOnce[In],
     op: Op,
     ops: Op*
   ): Iterator[Out] = {

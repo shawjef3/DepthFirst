@@ -81,6 +81,8 @@ Following are graphs of the % improvement you can expect from overhead coming fr
 
 [DepthFirstBenchmarks.scala](benchmarks/src/main/scala/me/jeffshaw/depthfirst/benchmarks/DepthFirstBenchmarks.scala)
 
+If the images aren't loading, try the [pdf](https://drive.google.com/open?id=0B8oSBVnQGD_wNV9YblNCVnVJU1k).
+
 ## vs Vector
 
 DepthFirst performs better when using Vectors if your Vectors have more than about 1000 elements.

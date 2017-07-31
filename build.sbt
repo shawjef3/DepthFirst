@@ -1,11 +1,9 @@
-lazy val dlf = project.in(file("dlf"))
+lazy val dataLocal = project.in(file("datalocal"))
 
-lazy val benchmarks = project.in(file("benchmarks")).dependsOn(dlf)
+lazy val benchmarks = project.in(file("benchmarks")).dependsOn(dataLocal)
 
-lazy val examples = project.in(file("examples")).dependsOn(dlf)
+lazy val examples = project.in(file("examples")).dependsOn(dataLocal)
 
 lazy val aggregate =
   project.in(file(".")).
-  aggregate(dlf, benchmarks, examples)
-
-scalaVersion := "2.12.2"
+  aggregate(dataLocal, benchmarks, examples)

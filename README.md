@@ -5,9 +5,20 @@ Motivation
 ==========
 While thinking about data locality, performance, and flatMap, I realized that for most data structures, flatMap behaves exactly the way we wouldn't want it to.
 
-Consider the order of operations for an eager data structure when performing `s.flatMap(sElem => f0(sElem).flatMap(f0sElem => f1(f0sElem).flatMap(...)...)`. First, `f0` is applied to each element of `s`. Second, `f1` is applied to each element of `s.flatMap(f0)`. If `s` or `s.flatMap(f0)` are too large to fit into cache, then by the time `f1` will be run, the values it will act on have been evicted and will have to be loaded from RAM.
+Consider the order of operations for an eager data structure when performing the following.
 
-Ideally, we'd want to perform `f0`, `f1`, etc. in a depth first search. This way, any uses of a given element of the collection will be active while the element is already in cache. Of course this isn't a guarantee, but it's more likely.
+```scala
+val vv = Vector(...)
+for {
+  v0 <- Vector(...)
+  v1 <- f0(v0)
+  v2 <- f1(v1)
+} yield v2
+```
+
+First, `f0` is applied to each element of `vv`. Second, `f1` is applied to each element of `vv.flatMap(f0)`. If `vv` or `vv.flatMap(f0)` are too large to fit into cache, then by the time `f1` runs, some of the values it will act on have been evicted and will have to be loaded from RAM.
+
+Ideally, we'd want to perform `f0` and `f1` in a depth first manner. This way, any uses of a value are more likely to be in cache, since the value was more recently used or created. Of course this isn't a guarantee.
 
 Implementation
 ==============
@@ -19,7 +30,7 @@ Clever readers will realize that this is similar to the way Stream works. If you
 I have not analyzed the memory use of DepthFirst.
 
 CPU Benchmarks
-==========
+==============
 
 I have run benchmarks using various sizes of `Vector[Int]`s, various numbers of `flatMap`s of `x => Vector(x)`, and on a few different CPUs. Generally speaking, if you are using collections on the order of 100,000, or have 4 or more flatMaps, maps, or filters, you'll gain 10% by using `DepthFirst`. The benefit increases as the collection size increases, the number of operations on the collection increases, or the amount of cache your CPU has increases.
 

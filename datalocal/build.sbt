@@ -4,7 +4,7 @@ name := "depthfirst"
 
 description := "A fast implementation of flatMap, map, and withFilter for large collections."
 
-version := "0.0-M0"
+version := "0.0-M1"
 
 libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.0.3" % Test,

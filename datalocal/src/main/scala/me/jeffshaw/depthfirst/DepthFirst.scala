@@ -65,7 +65,7 @@ class DepthFirst[In, Out] private (
 
   override def toIterator: Iterator[Out] = {
     val revOps = ops.reverse
-    DepthFirst.iterator[In, Out](values.toIterable, revOps.head, revOps.tail: _*)
+    DepthFirst.iterator[In, Out](values, revOps.head, revOps.tail: _*)
   }
 
 }

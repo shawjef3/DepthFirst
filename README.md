@@ -35,7 +35,7 @@ I have not analyzed the memory use of DepthFirst.
 
 The current draft is on Sonatype's Maven repository for Scala 2.10, 2.11 and 2.12.
 
-`"me.jeffshaw.depthfirst" %% "depthfirst" % "0.0-M0"`
+`"me.jeffshaw.depthfirst" %% "depthfirst" % "0.0-M1"`
 
 ## Example
 

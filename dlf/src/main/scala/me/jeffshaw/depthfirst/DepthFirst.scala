@@ -1,8 +1,8 @@
-package me.jeffshaw.dlf
+package me.jeffshaw.depthfirst
 
 import scala.collection.generic.CanBuildFrom
 
-class Dlf[In, Out, This] private (
+class DepthFirst[In, Out, This] private (
   private val values: TraversableOnce[In],
   private val ops: List[Op]
 )(implicit val innerBuilder: CanBuildFrom[_, Out, This]
@@ -10,36 +10,36 @@ class Dlf[In, Out, This] private (
 
   lazy val results: This = {
     val revOps = ops.reverse
-    Dlf.run[In, Out, This](values, revOps.head, revOps.tail: _*)
+    DepthFirst.run[In, Out, This](values, revOps.head, revOps.tail: _*)
   }
 
   def iterator: Iterator[Out] = {
     val revOps = ops.reverse
-    Dlf.iterator[In, Out](values.toIterable, revOps.head, revOps.tail: _*)
+    DepthFirst.iterator[In, Out](values.toIterable, revOps.head, revOps.tail: _*)
   }
 
-  def map[NextOut, That](f: Out => NextOut)(implicit innerBuilder: CanBuildFrom[_, NextOut, That]): Dlf[In, NextOut, That] = {
-    new Dlf[In, NextOut, That](values, Op.Map(f.asInstanceOf[Any => Any])::ops)
+  def map[NextOut, That](f: Out => NextOut)(implicit innerBuilder: CanBuildFrom[_, NextOut, That]): DepthFirst[In, NextOut, That] = {
+    new DepthFirst[In, NextOut, That](values, Op.Map(f.asInstanceOf[Any => Any]) :: ops)
   }
 
-  def flatMap[NextOut, That](f: Out => TraversableOnce[NextOut])(implicit innerBuilder: CanBuildFrom[_, NextOut, That]): Dlf[In, NextOut, That] = {
-    new Dlf[In, NextOut, That](values, Op.FlatMap(f.asInstanceOf[Any => TraversableOnce[Any]])::ops)
+  def flatMap[NextOut, That](f: Out => TraversableOnce[NextOut])(implicit innerBuilder: CanBuildFrom[_, NextOut, That]): DepthFirst[In, NextOut, That] = {
+    new DepthFirst[In, NextOut, That](values, Op.FlatMap(f.asInstanceOf[Any => TraversableOnce[Any]]) :: ops)
   }
 
-  def flatMap[NextOut, That](f: Out => Dlf[Out, NextOut, That])(implicit innerBuilder: CanBuildFrom[_, NextOut, That], d: DummyImplicit): Dlf[In, NextOut, That] = {
-    new Dlf[In, NextOut, That](values, Op.DlfFlatMap(f.asInstanceOf[Any => Dlf[Any, Any, That]])::ops)
+  def flatMap[NextOut, That](f: Out => DepthFirst[Out, NextOut, That])(implicit innerBuilder: CanBuildFrom[_, NextOut, That], d: DummyImplicit): DepthFirst[In, NextOut, That] = {
+    new DepthFirst[In, NextOut, That](values, Op.DlfFlatMap(f.asInstanceOf[Any => DepthFirst[Any, Any, That]]) :: ops)
   }
 
-  def withFilter(f: Out => Boolean): Dlf[In, Out, This] = {
-    new Dlf[In, Out, This](values, Op.Filter(f.asInstanceOf[Any => Boolean]) :: ops)
+  def withFilter(f: Out => Boolean): DepthFirst[In, Out, This] = {
+    new DepthFirst[In, Out, This](values, Op.Filter(f.asInstanceOf[Any => Boolean]) :: ops)
   }
 
 }
 
-object Dlf {
+object DepthFirst {
 
-  def apply[In, This](values: TraversableOnce[In])(implicit innerBuilder: CanBuildFrom[_, In, This]): Dlf[In, In, This] =
-    new Dlf[In, In, This](values, List())
+  def apply[In, This](values: TraversableOnce[In])(implicit innerBuilder: CanBuildFrom[_, In, This]): DepthFirst[In, In, This] =
+    new DepthFirst[In, In, This](values, List())
 
   def run[In, Out, That](
     values: TraversableOnce[In],

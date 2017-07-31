@@ -1,14 +1,14 @@
-package me.jeffshaw.dlf
+package me.jeffshaw.depthfirst
 
 import org.scalacheck.Gen
 import org.scalatest.FunSuite
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 
-class DlfSpec extends FunSuite with GeneratorDrivenPropertyChecks {
+class DepthFirstSpec extends FunSuite with GeneratorDrivenPropertyChecks {
 
   test("works") {
     val odds = for {
-      x <- Dlf(Vector.tabulate(10)(identity) ++ Vector.tabulate(10)(identity))
+      x <- DepthFirst(Vector.tabulate(10)(identity) ++ Vector.tabulate(10)(identity))
       if x % 2 == 0
       even <- Set(x)
       even_ <- Stream(even)
@@ -21,21 +21,21 @@ class DlfSpec extends FunSuite with GeneratorDrivenPropertyChecks {
 
     //Fully expanded version of `actual`.
     val actual_ =
-      Dlf[Int, Vector[Int]](
+      DepthFirst[Int, Vector[Int]](
         Vector.tabulate(10)(identity)
       ).withFilter(
         x => x % 2 == 0
       ).flatMap[Int, Vector[Int]](
         (x: Int) =>
-          Dlf[Int, Set[Int]](
+          DepthFirst[Int, Set[Int]](
             0 to x
           ).map[Int, Vector[Int]](identity)
       )
 
     val actual = for {
-      x <- Dlf(Vector.tabulate(10)(identity))
+      x <- DepthFirst(Vector.tabulate(10)(identity))
       if x % 2 == 0
-      toX <- Dlf(0 to x)
+      toX <- DepthFirst(0 to x)
     } yield toX
 
     val expected =
@@ -57,7 +57,7 @@ class DlfSpec extends FunSuite with GeneratorDrivenPropertyChecks {
           if value == 0
         } yield value
 
-      val actual = Dlf.run[Int, Int, Vector[Int]](values, Op.Filter(x => x == 0))
+      val actual = DepthFirst.run[Int, Int, Vector[Int]](values, Op.Filter(x => x == 0))
 
       assertResult(expected)(actual)
     }
@@ -71,7 +71,7 @@ class DlfSpec extends FunSuite with GeneratorDrivenPropertyChecks {
           value <- Vector(value, value + 1)
         } yield value
 
-      val actual = Dlf.run[Int, Int, Vector[Int]](values, Op.FlatMap((x: Any) => Vector(x, x.asInstanceOf[Int] + 1)))
+      val actual = DepthFirst.run[Int, Int, Vector[Int]](values, Op.FlatMap((x: Any) => Vector(x, x.asInstanceOf[Int] + 1)))
 
       assertResult(expected)(actual)
     }
@@ -84,14 +84,14 @@ class DlfSpec extends FunSuite with GeneratorDrivenPropertyChecks {
           value <- values
         } yield value + 1
 
-      val actual = Dlf.run[Int, Int, Vector[Int]](values, Op.Map((x: Any) => x.asInstanceOf[Int] + 1))
+      val actual = DepthFirst.run[Int, Int, Vector[Int]](values, Op.Map((x: Any) => x.asInstanceOf[Int] + 1))
 
       assertResult(expected)(actual)
     }
   }
 
   test("iterator") {
-    val actual = Dlf.iterator[Int, Int](Vector(1,2,3), Op.Map((x: Any) => x.asInstanceOf[Int] + 1)).toVector
+    val actual = DepthFirst.iterator[Int, Int](Vector(1,2,3), Op.Map((x: Any) => x.asInstanceOf[Int] + 1)).toVector
 
     assertResult(Vector(2,3,4))(actual)
   }

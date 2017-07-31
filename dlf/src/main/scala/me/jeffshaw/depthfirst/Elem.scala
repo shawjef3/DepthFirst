@@ -1,4 +1,4 @@
-package me.jeffshaw.dlf
+package me.jeffshaw.depthfirst
 
 sealed trait Elem {
   val ops: List[Op]
@@ -9,7 +9,7 @@ sealed trait Elem {
 object Elem {
 
   case class DlfFlatMap[That](
-    f: Any => Dlf[Any, Any, That],
+    f: Any => DepthFirst[Any, Any, That],
     override val ops: List[Op],
     override val values: Iterator[Any]
   ) extends Elem

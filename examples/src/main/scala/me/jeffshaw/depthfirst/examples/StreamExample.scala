@@ -1,6 +1,6 @@
-package me.jeffshaw.dlf.examples
+package me.jeffshaw.depthfirst.examples
 
-import me.jeffshaw.dlf.Dlf
+import me.jeffshaw.depthfirst.DepthFirst
 
 object StreamExample extends App {
 
@@ -41,7 +41,7 @@ object DlfExample extends App {
 
   val results =
     for {
-      v <- Dlf(values)
+      v <- DepthFirst(values)
       f0_ <- f0(v)
       f1_ <- f1(v)
     } yield f1_

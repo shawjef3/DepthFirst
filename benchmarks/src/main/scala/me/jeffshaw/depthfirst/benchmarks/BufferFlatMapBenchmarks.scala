@@ -1,8 +1,8 @@
-package me.jeffshaw.dlf.benchmarks
+package me.jeffshaw.depthfirst.benchmarks
 
 import scala.collection.mutable.Buffer
 import java.util.concurrent.TimeUnit
-import me.jeffshaw.dlf.{Dlf, Op}
+import me.jeffshaw.depthfirst.{DepthFirst, Op}
 import org.openjdk.jmh.annotations.{State => JmhState, _}
 
 @JmhState(Scope.Thread)
@@ -36,7 +36,7 @@ class BufferFlatMapBenchmarks {
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
   def dlf(): Unit = {
     val op = Op.FlatMap(x => Buffer(x))
-    Dlf.run[Int, Int, Buffer[Int]](values, op, Seq.fill(iterationCount - 1)(op): _*)
+    DepthFirst.run[Int, Int, Buffer[Int]](values, op, Seq.fill(iterationCount - 1)(op): _*)
   }
 
 }

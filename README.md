@@ -129,4 +129,4 @@ The ideal use of DepthFirst is on a CPU with a large cache and large collections
 
 ## License
 
-This contents of this repository are usable under the terms of [GPL 3](https://www.gnu.org/licenses/gpl-3.0.en.html).
+The contents of this repository are usable under the terms of [GPL 3](https://www.gnu.org/licenses/gpl-3.0.en.html).

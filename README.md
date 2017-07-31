@@ -29,6 +29,8 @@ Following are graphs of the % improvement you can expect from overhead coming fr
 
 ## vs Vector
 
+DepthFirst performs better when using Vectors if your Vectors have more than about 1000 elements.
+
 6 MB cache, Intel i7 - 4980 HQ, dedicated MacBook
 
 ![image](https://www.jeffshaw.me/depthfirst/M0/6.png)
@@ -46,6 +48,8 @@ Following are graphs of the % improvement you can expect from overhead coming fr
 ![image](https://www.jeffshaw.me/depthfirst/M0/40.png)
 
 ## vs Stream
+
+Stream performs much better than using Vector directly, and so we have to be using collections on the order of 10^6 to see a benefit from DepthFirst.
 
 6 MB cache, Intel i7 - 4980 HQ, dedicated MacBook
 

@@ -1,17 +1,18 @@
 package me.jeffshaw.depthfirst
 
-private case class Stack[Out](
+private class Stack[Out] private (
   /*
   A benchmark between List and Vector showed that List is faster.
    */
-  stack: List[Elem],
-  maybeValues: Option[Stack.Value[Out]]
+  private var stack: List[Elem]
 ) {
+  private var maybeValues: Option[Stack.Value[Out]] = None
+
   def isFinished: Boolean = stack.isEmpty
 
   def valuesIterator: Iterator[Out] = maybeValues.map(_.toIterator).getOrElse(Iterator())
 
-  def step: Stack[Out] = {
+  def step(): Unit = {
     stack match {
       case head::ss =>
         val values = head.values
@@ -24,21 +25,13 @@ private case class Stack[Out](
               if (f(value))
                 fs match {
                   case nextF::remainingFs =>
-                    Stack(
-                      stack = nextF.toElem(remainingFs, Iterator(value))::stack,
-                      maybeValues = None
-                    )
+                    stack = nextF.toElem(remainingFs, Iterator(value))::stack
+                    maybeValues = None
 
                   case Nil =>
-                    Stack(
-                      stack = stack,
-                      maybeValues = Some(Stack.Value.One(value.asInstanceOf[Out]))
-                    )
+                    maybeValues = Some(Stack.Value.One(value.asInstanceOf[Out]))
                 } else {
-                Stack(
-                  stack = stack,
-                  maybeValues = None
-                )
+                maybeValues = None
               }
 
             case Elem.FlatMap(f, fs, _) =>
@@ -46,16 +39,11 @@ private case class Stack[Out](
 
               fs match {
                 case nextF::remainingFs =>
-                  Stack(
-                    stack = nextF.toElem(remainingFs, fResults.toIterator)::stack,
-                    maybeValues = None
-                  )
+                  stack = nextF.toElem(remainingFs, fResults.toIterator)::stack
+                  maybeValues = None
 
                 case Nil =>
-                  Stack(
-                    stack = stack,
-                    maybeValues = Some(Stack.Value.Many(fResults.asInstanceOf[TraversableOnce[Out]]))
-                  )
+                  maybeValues = Some(Stack.Value.Many(fResults.asInstanceOf[TraversableOnce[Out]]))
               }
 
             case Elem.DlfFlatMap(f, fs, _) =>
@@ -64,16 +52,11 @@ private case class Stack[Out](
 
               fs match {
                 case nextF::remainingFs =>
-                  Stack(
-                    stack = nextF.toElem(remainingFs, fResults)::stack,
-                    maybeValues = None
-                  )
+                  stack = nextF.toElem(remainingFs, fResults)::stack
+                  maybeValues = None
 
                 case Nil =>
-                  Stack(
-                    stack = stack,
-                    maybeValues = Some(Stack.Value.Many(fResults.toTraversable.asInstanceOf[TraversableOnce[Out]]))
-                  )
+                  maybeValues = Some(Stack.Value.Many(fResults.toTraversable.asInstanceOf[TraversableOnce[Out]]))
               }
 
             case Elem.Map(f, fs, _) =>
@@ -81,29 +64,31 @@ private case class Stack[Out](
 
               fs match {
                 case nextF::remainingFs =>
-                  Stack(
-                    stack = nextF.toElem(remainingFs, Iterator(result))::stack,
-                    maybeValues = None
-                  )
+                  stack = nextF.toElem(remainingFs, Iterator(result))::stack
+                  maybeValues = None
 
                 case Nil =>
-                  Stack(
-                    stack = stack,
-                    maybeValues = Some(Stack.Value.One(result.asInstanceOf[Out]))
-                  )
+                  maybeValues = Some(Stack.Value.One(result.asInstanceOf[Out]))
               }
 
           }
 
-        } else Stack(stack = ss, maybeValues = None)
+        } else {
+          stack = ss
+          maybeValues = None
+        }
 
       case Nil =>
-        Stack(stack = Nil, maybeValues = None)
+        maybeValues = None
     }
   }
 }
 
 private object Stack {
+  def apply[Out](elem: Elem): Stack[Out] = {
+    new Stack(List(elem))
+  }
+
   sealed trait Value[Out] extends TraversableOnce[Out]
 
   object Value {

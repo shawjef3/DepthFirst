@@ -83,14 +83,14 @@ object DepthFirst {
     op: Op,
     ops: Op*
   ): Iterator[Out] = {
-    var stack = Stack(List(op.toElem(ops.toList, values.toIterator)), None)
+    val stack = Stack(op.toElem(ops.toList, values.toIterator))
 
     new Iterator[Out] {
       var innerIterator: Iterator[Out] = Iterator()
 
       override def hasNext: Boolean = {
         while (!innerIterator.hasNext && !stack.isFinished) {
-          stack = stack.step
+          stack.step()
           innerIterator = stack.valuesIterator
         }
 

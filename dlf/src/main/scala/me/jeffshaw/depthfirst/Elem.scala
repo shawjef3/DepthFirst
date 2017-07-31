@@ -1,12 +1,12 @@
 package me.jeffshaw.depthfirst
 
-sealed trait Elem {
+private sealed trait Elem {
   val ops: List[Op]
 
   val values:Iterator[Any]
 }
 
-object Elem {
+private object Elem {
 
   case class DlfFlatMap(
     f: Any => DepthFirst[Any, Any],

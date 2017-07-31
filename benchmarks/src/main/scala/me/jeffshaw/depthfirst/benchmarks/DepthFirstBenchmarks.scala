@@ -6,7 +6,7 @@ import me.jeffshaw.depthfirst.{DepthFirst, Op}
 import org.openjdk.jmh.annotations.{State => JmhState, _}
 
 @JmhState(Scope.Thread)
-class VectorFlatMapBenchmarks {
+class DepthFirstBenchmarks {
 
   @Param(Array("0", "1", "1000", "5000", "10000", "50000", "100000", "1000000", "2000000", "3000000"))
   var valueCount: Int = _
@@ -25,7 +25,7 @@ class VectorFlatMapBenchmarks {
 
   @Setup(Level.Iteration)
   def setup(): Unit = {
-    values = VectorFlatMapBenchmarks.values.take(valueCount)
+    values = DepthFirstBenchmarks.values.take(valueCount)
     valuesStream = values.toStream
     ops = Seq.fill(iterationCount)(Op.FlatMap(x => Vector(x)))
   }
@@ -56,7 +56,7 @@ class VectorFlatMapBenchmarks {
   @BenchmarkMode(Array(Mode.AverageTime))
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
   def dlf(): Unit = {
-    DepthFirst.run[Int, Int, Vector[Int]](values, ops.head, ops.tail: _*)
+    DepthFirst.iterator[Int, Int](values, ops.head, ops.tail: _*).toVector
   }
 
 //  @Benchmark
@@ -72,6 +72,6 @@ class VectorFlatMapBenchmarks {
 
 }
 
-object VectorFlatMapBenchmarks {
+object DepthFirstBenchmarks {
   val values: Vector[Int] = Vector.fill(16777216)(util.Random.nextInt())
 }

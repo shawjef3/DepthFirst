@@ -13,6 +13,8 @@ class VectorFlatMapBenchmarks {
 
   var values: Vector[Int] = _
 
+  var valuesStream: Stream[Int] = _
+
   //Not a var, because java streams can't be reused.
   def javaValues: java.util.stream.IntStream = IntStream.of(values: _*)
 
@@ -24,6 +26,7 @@ class VectorFlatMapBenchmarks {
   @Setup(Level.Iteration)
   def setup(): Unit = {
     values = VectorFlatMapBenchmarks.values.take(valueCount)
+    valuesStream = values.toStream
     ops = Seq.fill(iterationCount)(Op.FlatMap(x => Vector(x)))
   }
 
@@ -35,6 +38,18 @@ class VectorFlatMapBenchmarks {
     for (i <- 1 to iterationCount) {
       result = result.flatMap(x => Vector(x))
     }
+  }
+
+  @Benchmark
+  @BenchmarkMode(Array(Mode.AverageTime))
+  @OutputTimeUnit(TimeUnit.MICROSECONDS)
+  def stream(): Unit = {
+    var result = valuesStream
+    for (i <- 1 to iterationCount) {
+      result = result.flatMap(x => Stream(x))
+    }
+    //force evaluation
+    result.lastOption
   }
 
   @Benchmark

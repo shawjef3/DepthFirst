@@ -19,6 +19,7 @@ crossScalaVersions := Seq(
 )
 
 pomExtra :=
+  <url>https://github.com/shawjef3/DepthFirst</url>
   <developers>
     <developer>
       <name>Jeff Shaw</name>
@@ -26,10 +27,16 @@ pomExtra :=
       <url>https://github.com/shawjef3/</url>
     </developer>
   </developers>
-    <scm>
-      <url>git@github.com:shawjef3/DepthFirst.git</url>
-      <connection>scm:git:git@github.com:shawjef3/DepthFirst.git</connection>
-    </scm>
+  <scm>
+    <url>git@github.com:shawjef3/DepthFirst.git</url>
+    <connection>scm:git:git@github.com:shawjef3/DepthFirst.git</connection>
+  </scm>
+  <licenses>
+    <license>
+      <name>GNU General Public License, Version 3</name>
+      <url>http://www.gnu.org/licenses/gpl-3.0.html</url>
+    </license>
+  </licenses>
 
 publishTo := {
   val nexus = "https://oss.sonatype.org/"

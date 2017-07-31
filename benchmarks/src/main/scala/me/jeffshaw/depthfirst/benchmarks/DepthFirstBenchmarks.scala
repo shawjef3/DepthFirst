@@ -55,7 +55,7 @@ class DepthFirstBenchmarks {
   @Benchmark
   @BenchmarkMode(Array(Mode.AverageTime))
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
-  def dlf(): Unit = {
+  def depthFirst(): Unit = {
     DepthFirst.iterator[Int, Int](values, ops.head, ops.tail: _*).toVector
   }
 

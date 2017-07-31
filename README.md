@@ -129,6 +129,10 @@ The ideal use of DepthFirst is on a CPU with a large cache and large collections
 
 ![image](https://www.jeffshaw.me/depthfirst/M0/40big.png)
 
+## Data
+
+See [benchmark_data.csv](benchmarks/benchmark_data.csv).
+
 ## License
 
 The contents of this repository are usable under the terms of [GPL 3](https://www.gnu.org/licenses/gpl-3.0.en.html).

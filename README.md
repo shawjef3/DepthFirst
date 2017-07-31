@@ -46,7 +46,7 @@ DepthFirst performs better when using Vectors if your Vectors have more than abo
 
 ![image](https://www.jeffshaw.me/depthfirst/M0/6.png)
 
-8 MB cache, dedicated AMD Ryzen, Windows
+8 MB cache, dedicated AMD Ryzen 1700, Windows
 
 ![image](https://www.jeffshaw.me/depthfirst/M0/8.png)
 
@@ -66,7 +66,7 @@ Stream performs much better than using Vector directly, and so we have to be usi
 
 ![image](https://www.jeffshaw.me/depthfirst/M0/6stream.png)
 
-8 MB cache, dedicated AMD Ryzen, Windows
+8 MB cache, dedicated AMD Ryzen 1700, Windows
 
 ![image](https://www.jeffshaw.me/depthfirst/M0/8stream.png)
 

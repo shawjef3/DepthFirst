@@ -23,7 +23,7 @@ Ideally, we'd want to perform `f0` and `f1` in a depth first manner. This way, a
 
 # Implementation
 
-I created a run-time for Scala's `for` syntax operations that performs them in a depth-first manner. It uses two stacks. The first is the list of operations to be performed, and the second is an iterator over the values that the operations will apply to. The operations on the stack are exposed as an iterator. When a value is requested, stack operations are performed until a value without no further operations is found.
+I created a run-time for Scala's `for` syntax operations that performs them in a depth-first manner. It uses a stack of queues. A stack element is an operation to perform, along with the values for the operation. When a value is requested, operations are performed until a value without no further operations is found.
 
 Clever readers will realize that this is similar to the way Stream works. If you have a Stream that is the result of various operations, and then ask for an element, the data structure will perform the minimum work to get it. In fact [a simple experiment](examples/src/main/scala/me/jeffshaw/depthfirst/examples/StreamComparison.scala) comparing the two shows similar behavior. I haven't thought deeply about why, but the depth first flatMap is faster for large data sets.
 

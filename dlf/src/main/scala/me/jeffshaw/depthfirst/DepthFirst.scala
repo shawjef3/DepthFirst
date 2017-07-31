@@ -86,7 +86,7 @@ object DepthFirst {
     }
   }
 
-  case class Result[Out](
+  private case class Result[Out](
     /*
     A benchmark between List and Vector showed that List is faster.
      */
@@ -189,7 +189,7 @@ object DepthFirst {
     }
   }
 
-  object Result {
+  private object Result {
     sealed trait Value[Out] extends TraversableOnce[Out]
 
     object Value {

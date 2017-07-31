@@ -10,7 +10,14 @@ class DepthFirst[In, Out, This] private (
 
   lazy val results: This = {
     val revOps = ops.reverse
-    DepthFirst.run[In, Out, This](values, revOps.head, revOps.tail: _*)
+    DepthFirst.run[
+      In,
+      Out,
+      This
+    ](values = values,
+      op = revOps.head,
+      ops = revOps.tail: _*
+    )
   }
 
   def iterator: Iterator[Out] = {
@@ -18,15 +25,31 @@ class DepthFirst[In, Out, This] private (
     DepthFirst.iterator[In, Out](values.toIterable, revOps.head, revOps.tail: _*)
   }
 
-  def map[NextOut, That](f: Out => NextOut)(implicit innerBuilder: CanBuildFrom[_, NextOut, That]): DepthFirst[In, NextOut, That] = {
+  def map[
+    NextOut,
+    That
+  ](f: Out => NextOut
+  )(implicit innerBuilder: CanBuildFrom[_, NextOut, That]
+  ): DepthFirst[In, NextOut, That] = {
     new DepthFirst[In, NextOut, That](values, Op.Map(f.asInstanceOf[Any => Any]) :: ops)
   }
 
-  def flatMap[NextOut, That](f: Out => TraversableOnce[NextOut])(implicit innerBuilder: CanBuildFrom[_, NextOut, That]): DepthFirst[In, NextOut, That] = {
+  def flatMap[
+    NextOut,
+    That
+  ](f: Out => TraversableOnce[NextOut]
+  )(implicit innerBuilder: CanBuildFrom[_, NextOut, That]
+  ): DepthFirst[In, NextOut, That] = {
     new DepthFirst[In, NextOut, That](values, Op.FlatMap(f.asInstanceOf[Any => TraversableOnce[Any]]) :: ops)
   }
 
-  def flatMap[NextOut, That](f: Out => DepthFirst[Out, NextOut, That])(implicit innerBuilder: CanBuildFrom[_, NextOut, That], d: DummyImplicit): DepthFirst[In, NextOut, That] = {
+  def flatMap[
+    NextOut,
+    That
+  ](f: Out => DepthFirst[Out, NextOut, That]
+  )(implicit innerBuilder: CanBuildFrom[_, NextOut, That],
+    d: DummyImplicit
+  ): DepthFirst[In, NextOut, That] = {
     new DepthFirst[In, NextOut, That](values, Op.DlfFlatMap(f.asInstanceOf[Any => DepthFirst[Any, Any, That]]) :: ops)
   }
 
@@ -38,7 +61,12 @@ class DepthFirst[In, Out, This] private (
 
 object DepthFirst {
 
-  def apply[In, This](values: TraversableOnce[In])(implicit innerBuilder: CanBuildFrom[_, In, This]): DepthFirst[In, In, This] =
+  def apply[
+    In,
+    This
+  ](values: TraversableOnce[In]
+  )(implicit innerBuilder: CanBuildFrom[_, In, This]
+  ): DepthFirst[In, In, This] =
     new DepthFirst[In, In, This](values, List())
 
   def run[In, Out, That](
@@ -53,7 +81,6 @@ object DepthFirst {
 
     results.result()
   }
-
 
   def iterator[In, Out](
     values: TraversableOnce[In],

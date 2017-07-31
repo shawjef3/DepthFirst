@@ -77,3 +77,7 @@ Stream performs much better than using Vector directly, and so we have to be usi
 40 MB cache, Intel E5-2697A, VM from Digital Ocean
 
 ![image](https://www.jeffshaw.me/depthfirst/M0/40stream.png)
+
+## License
+
+This contents of this repository are usable under the terms of [GPL 3](https://www.gnu.org/licenses/gpl-3.0.en.html).

@@ -1,34 +1,26 @@
 package me.jeffshaw.depthfirst
 
-class DepthFirst[In, Out] private (
-  values: => TraversableOnce[In],
-  ops: List[Op]
+import java.util.Spliterator
+import java.util.function.Consumer
+import java.util.stream.StreamSupport
+import scala.collection.JavaConverters._
+
+class DepthFirst[Out] private (
+  inner: java.util.stream.Stream[Out]
 ) extends TraversableOnce[Out] {
 
-  def map[
-    NextOut
-  ](f: Out => NextOut
-  ): DepthFirst[In, NextOut] = {
-    new DepthFirst[In, NextOut](values, Op.Map(f.asInstanceOf[Any => Any]) :: ops)
-  }
+  def map[NextOut](f: Out => NextOut): DepthFirst[NextOut] =
+    new DepthFirst(inner.map[NextOut]((x: Out) => f(x)))
 
   def flatMap[
     NextOut
   ](f: Out => TraversableOnce[NextOut]
-  ): DepthFirst[In, NextOut] = {
-    new DepthFirst[In, NextOut](values, Op.FlatMap(f.asInstanceOf[Any => TraversableOnce[Any]]) :: ops)
+  ): DepthFirst[NextOut] = {
+    new DepthFirst(inner.flatMap((x: Out) => DepthFirst.toStream(f(x))))
   }
 
-  def flatMap[
-    NextOut
-  ](f: Out => DepthFirst[Out, NextOut]
-  )(implicit d: DummyImplicit
-  ): DepthFirst[In, NextOut] = {
-    new DepthFirst[In, NextOut](values, Op.DlfFlatMap(f.asInstanceOf[Any => DepthFirst[Any, Any]]) :: ops)
-  }
-
-  def withFilter(f: Out => Boolean): DepthFirst[In, Out] = {
-    new DepthFirst[In, Out](values, Op.Filter(f.asInstanceOf[Any => Boolean]) :: ops)
+  def withFilter(f: Out => Boolean): DepthFirst[Out] = {
+    new DepthFirst[Out](inner.filter((x: Out) => f(x)))
   }
 
   //TraversableOnce
@@ -59,13 +51,12 @@ class DepthFirst[In, Out] private (
 
   override def toTraversable: Traversable[Out] = toIterator.toTraversable
 
-  override def isTraversableAgain: Boolean = values.isTraversableAgain
+  override def isTraversableAgain: Boolean = false
 
   override def toStream: Stream[Out] = toIterator.toStream
 
   override def toIterator: Iterator[Out] = {
-    val revOps = ops.reverse
-    DepthFirst.iterator[In, Out](values, revOps.head, revOps.tail: _*)
+    inner.iterator().asScala
   }
 
 }
@@ -74,32 +65,45 @@ object DepthFirst {
 
   def apply[
     In
-  ](values: => TraversableOnce[In]
-  ): DepthFirst[In, In] =
-    new DepthFirst[In, In](values, List())
+  ](values: TraversableOnce[In]
+  ): DepthFirst[In] =
+    new DepthFirst[In](toStream(values))
 
-  def iterator[In, Out](
-    values: TraversableOnce[In],
-    op: Op,
-    ops: Op*
-  ): Iterator[Out] = {
-    val stack = Stack(op.toElem(ops.toList, values.toIterator))
+  def toStream[T](t: TraversableOnce[T]): java.util.stream.Stream[T] = {
+    StreamSupport.stream(
+      new Spliterator[T] {
+        val i = t.toIterator
+        @volatile var advances = 0L
 
-    new Iterator[Out] {
-      var innerIterator: Iterator[Out] = Iterator()
+        override def characteristics(): Int = 0
 
-      override def hasNext: Boolean = {
-        while (!innerIterator.hasNext && !stack.isFinished) {
-          stack.step()
-          innerIterator = stack.valuesIterator
-        }
+        override def trySplit(): Spliterator[T] = null
 
-        innerIterator.hasNext
-      }
+        override def tryAdvance(action: Consumer[_ >: T]): Boolean =
+          if (i.hasNext) {
+            action.accept(i.next())
+            advances += 1L
+            true
+          } else false
 
-      override def next(): Out =
-        innerIterator.next()
+        override def estimateSize(): Long =
+          if (t.hasDefiniteSize)
+            t.size - advances
+          else Long.MaxValue
+      },
+      false
+    )
+  }
+
+  def main(args: Array[String]): Unit = {
+    val iterationCount = 20
+    val values = Array.fill(10000000)(0)
+    var df = DepthFirst(values)
+    for (i <- 1 to iterationCount) {
+      df = df.flatMap(x => Array(x))
     }
+    val i = df.toIterator
+    for (_ <- i) ()
   }
 
 }

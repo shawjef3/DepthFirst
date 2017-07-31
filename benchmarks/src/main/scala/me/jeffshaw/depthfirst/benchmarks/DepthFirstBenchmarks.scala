@@ -2,7 +2,7 @@ package me.jeffshaw.depthfirst.benchmarks
 
 import java.util.concurrent.TimeUnit
 import java.util.stream.IntStream
-import me.jeffshaw.depthfirst.{DepthFirst, Op}
+import me.jeffshaw.depthfirst.DepthFirst
 import org.openjdk.jmh.annotations.{State => JmhState, _}
 
 @JmhState(Scope.Thread)
@@ -11,21 +11,17 @@ class DepthFirstBenchmarks {
   @Param(Array("0", "1", "1000", "5000", "10000", "50000", "100000", "1000000", "2000000", "3000000"))
   var valueCount: Int = _
 
-  var values: Vector[Int] = _
+  var values: Array[Int] = _
 
   var valuesStream: Stream[Int] = _
-
-  var valuesArray: Array[Int] = _
 
   var valuesBoxedArray: Array[Integer] = _
 
   //Not a var, because java streams can't be reused.
-  def javaValues: java.util.stream.IntStream = IntStream.of(valuesArray: _*)
+  def javaValues: java.util.stream.IntStream = IntStream.of(values: _*)
 
   def javaBoxedValues: java.util.stream.Stream[Integer] =
     java.util.Arrays.stream(valuesBoxedArray)
-
-  var ops: Seq[Op] = _
 
   @Param(Array("1", "3", "5", "10", "15", "20"))
   var iterationCount: Int = _
@@ -34,9 +30,7 @@ class DepthFirstBenchmarks {
   def setup(): Unit = {
     values = DepthFirstBenchmarks.values.take(valueCount)
     valuesStream = values.toStream
-    valuesArray = values.toArray
-    valuesBoxedArray = valuesArray.map(new Integer(_))
-    ops = Seq.fill(iterationCount)(Op.FlatMap(x => Vector(x)))
+    valuesBoxedArray = values.map(new Integer(_))
   }
 
   @Benchmark
@@ -65,14 +59,12 @@ class DepthFirstBenchmarks {
   @BenchmarkMode(Array(Mode.AverageTime))
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
   def depthFirst(): Unit = {
-    DepthFirst.iterator[Int, Int](values, ops.head, ops.tail: _*).toVector
-  }
-
-  @Benchmark
-  @BenchmarkMode(Array(Mode.AverageTime))
-  @OutputTimeUnit(TimeUnit.MICROSECONDS)
-  def depthFirstArray(): Unit = {
-    DepthFirst.iterator[Int, Int](valuesArray, ops.head, ops.tail: _*).toArray
+    var df = DepthFirst(values)
+    for (i <- 1 to iterationCount) {
+      df = df.flatMap(x => Vector(x))
+    }
+    val i = df.toIterator
+    for (_ <- i) ()
   }
 
   @Benchmark
@@ -94,11 +86,11 @@ class DepthFirstBenchmarks {
     for (i <- 1 to iterationCount) {
       result = result.flatMap((x: Integer) => java.util.stream.Stream.of[Integer](x))
     }
-    result.toArray()
+    result.forEach(_ => ())
   }
 
 }
 
 object DepthFirstBenchmarks {
-  val values: Vector[Int] = Vector.fill(16777216)(util.Random.nextInt())
+  val values: Array[Int] = Array.fill(16777216)(util.Random.nextInt())
 }

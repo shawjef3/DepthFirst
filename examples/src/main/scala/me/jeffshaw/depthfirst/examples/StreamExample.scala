@@ -46,6 +46,6 @@ object DlfExample extends App {
       f1_ <- f1(v)
     } yield f1_
 
-  results.results
+  results.toIterator.toVector
 
 }

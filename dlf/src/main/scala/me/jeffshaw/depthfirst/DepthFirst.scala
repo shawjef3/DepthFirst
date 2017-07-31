@@ -1,60 +1,71 @@
 package me.jeffshaw.depthfirst
 
-import scala.collection.generic.CanBuildFrom
-
-class DepthFirst[In, Out, This] private (
-  private val values: TraversableOnce[In],
-  private val ops: List[Op]
-)(implicit val innerBuilder: CanBuildFrom[_, Out, This]
-) {
-
-  lazy val results: This = {
-    val revOps = ops.reverse
-    DepthFirst.run[
-      In,
-      Out,
-      This
-    ](values = values,
-      op = revOps.head,
-      ops = revOps.tail: _*
-    )
-  }
-
-  def iterator: Iterator[Out] = {
-    val revOps = ops.reverse
-    DepthFirst.iterator[In, Out](values.toIterable, revOps.head, revOps.tail: _*)
-  }
+class DepthFirst[In, Out] private (
+  values: => TraversableOnce[In],
+  ops: List[Op]
+) extends TraversableOnce[Out] {
 
   def map[
-    NextOut,
-    That
+    NextOut
   ](f: Out => NextOut
-  )(implicit innerBuilder: CanBuildFrom[_, NextOut, That]
-  ): DepthFirst[In, NextOut, That] = {
-    new DepthFirst[In, NextOut, That](values, Op.Map(f.asInstanceOf[Any => Any]) :: ops)
+  ): DepthFirst[In, NextOut] = {
+    new DepthFirst[In, NextOut](values, Op.Map(f.asInstanceOf[Any => Any]) :: ops)
   }
 
   def flatMap[
-    NextOut,
-    That
+    NextOut
   ](f: Out => TraversableOnce[NextOut]
-  )(implicit innerBuilder: CanBuildFrom[_, NextOut, That]
-  ): DepthFirst[In, NextOut, That] = {
-    new DepthFirst[In, NextOut, That](values, Op.FlatMap(f.asInstanceOf[Any => TraversableOnce[Any]]) :: ops)
+  ): DepthFirst[In, NextOut] = {
+    new DepthFirst[In, NextOut](values, Op.FlatMap(f.asInstanceOf[Any => TraversableOnce[Any]]) :: ops)
   }
 
   def flatMap[
-    NextOut,
-    That
-  ](f: Out => DepthFirst[Out, NextOut, That]
-  )(implicit innerBuilder: CanBuildFrom[_, NextOut, That],
-    d: DummyImplicit
-  ): DepthFirst[In, NextOut, That] = {
-    new DepthFirst[In, NextOut, That](values, Op.DlfFlatMap(f.asInstanceOf[Any => DepthFirst[Any, Any, That]]) :: ops)
+    NextOut
+  ](f: Out => DepthFirst[Out, NextOut]
+  )(implicit d: DummyImplicit
+  ): DepthFirst[In, NextOut] = {
+    new DepthFirst[In, NextOut](values, Op.DlfFlatMap(f.asInstanceOf[Any => DepthFirst[Any, Any]]) :: ops)
   }
 
-  def withFilter(f: Out => Boolean): DepthFirst[In, Out, This] = {
-    new DepthFirst[In, Out, This](values, Op.Filter(f.asInstanceOf[Any => Boolean]) :: ops)
+  def withFilter(f: Out => Boolean): DepthFirst[In, Out] = {
+    new DepthFirst[In, Out](values, Op.Filter(f.asInstanceOf[Any => Boolean]) :: ops)
+  }
+
+  //TraversableOnce
+
+  override def foreach[U](f: (Out) => U): Unit = toIterator.foreach(f)
+
+  override def isEmpty: Boolean =
+    toIterator.isEmpty
+
+  //We can't guarantee this, due to the nature of `ops`.
+  override def hasDefiniteSize: Boolean =
+    false
+
+  override def seq: TraversableOnce[Out] =
+    toIterator.seq
+
+  override def forall(p: (Out) => Boolean): Boolean =
+    toIterator.forall(p)
+
+  override def exists(p: (Out) => Boolean): Boolean =
+    toIterator.exists(p)
+
+  override def find(p: (Out) => Boolean): Option[Out] =
+    toIterator.find(p)
+
+  override def copyToArray[B >: Out](xs: Array[B], start: Int, len: Int): Unit =
+    toIterator.copyToArray[B](xs, start, len)
+
+  override def toTraversable: Traversable[Out] = toIterator.toTraversable
+
+  override def isTraversableAgain: Boolean = values.isTraversableAgain
+
+  override def toStream: Stream[Out] = toIterator.toStream
+
+  override def toIterator: Iterator[Out] = {
+    val revOps = ops.reverse
+    DepthFirst.iterator[In, Out](values.toIterable, revOps.head, revOps.tail: _*)
   }
 
 }
@@ -62,25 +73,10 @@ class DepthFirst[In, Out, This] private (
 object DepthFirst {
 
   def apply[
-    In,
-    This
-  ](values: TraversableOnce[In]
-  )(implicit innerBuilder: CanBuildFrom[_, In, This]
-  ): DepthFirst[In, In, This] =
-    new DepthFirst[In, In, This](values, List())
-
-  def run[In, Out, That](
-    values: TraversableOnce[In],
-    op: Op,
-    ops: Op*
-  )(implicit canBuildFrom: CanBuildFrom[_, Out, That]
-  ): That = {
-    val results = canBuildFrom()
-
-    results ++= iterator(values, op, ops: _*)
-
-    results.result()
-  }
+    In
+  ](values: => TraversableOnce[In]
+  ): DepthFirst[In, In] =
+    new DepthFirst[In, In](values, List())
 
   def iterator[In, Out](
     values: TraversableOnce[In],
@@ -166,7 +162,7 @@ object DepthFirst {
 
               case Elem.DlfFlatMap(f, fs, _) =>
                 val innerDlf = f(value)
-                val fResults = innerDlf.iterator
+                val fResults = innerDlf.toIterator
 
                 fs match {
                   case nextF::remainingFs =>

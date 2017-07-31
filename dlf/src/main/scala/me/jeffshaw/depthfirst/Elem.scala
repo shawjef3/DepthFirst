@@ -8,8 +8,8 @@ sealed trait Elem {
 
 object Elem {
 
-  case class DlfFlatMap[That](
-    f: Any => DepthFirst[Any, Any, That],
+  case class DlfFlatMap(
+    f: Any => DepthFirst[Any, Any],
     override val ops: List[Op],
     override val values: Iterator[Any]
   ) extends Elem

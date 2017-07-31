@@ -119,6 +119,12 @@ Stream performs much better than using Vector directly, and so we have to be usi
 
 ![image](https://www.jeffshaw.me/depthfirst/M0/40stream.png)
 
+## Best Case
+
+The ideal use of DepthFirst is on a CPU with a large cache and large collections. The number of operations doesn't much matter. A CPU with 40 MB of cache and a collection with 3 million elements can see a 69% improvement in the overhead used by a single flatMap. Additional flatMaps yield an increase in the improvement.
+
+![image](https://www.jeffshaw.me/depthfirst/M0/40big.png)
+
 ## License
 
 This contents of this repository are usable under the terms of [GPL 3](https://www.gnu.org/licenses/gpl-3.0.en.html).

@@ -1,4 +1,4 @@
-organization := "me.jeffshaw.dlf"
+organization := "me.jeffshaw.depthfirst"
 
 name := "examples"
 

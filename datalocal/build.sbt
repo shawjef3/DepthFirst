@@ -1,6 +1,6 @@
-organization := "me.jeffshaw.datalocal"
+organization := "me.jeffshaw.depthfirst"
 
-name := "datalocal"
+name := "depthfirst"
 
 description := "A fast implementation of flatMap, map, and withFilter for large collections."
 

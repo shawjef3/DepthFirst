@@ -1,6 +1,6 @@
 enablePlugins(JmhPlugin)
 
-organization := "me.jeffshaw.dlf"
+organization := "me.jeffshaw.depthfirst"
 
 name := "benchmarks"
 

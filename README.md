@@ -1,5 +1,7 @@
 # Depth First flatMap
 
+by Jeff Shaw
+
 # Motivation
 
 While thinking about data locality, performance, and flatMap, I realized that for most data structures, flatMap behaves exactly the way we wouldn't want it to.

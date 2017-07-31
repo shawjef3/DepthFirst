@@ -1,5 +1,0 @@
-package dlf
-
-class GenState {
-
-}

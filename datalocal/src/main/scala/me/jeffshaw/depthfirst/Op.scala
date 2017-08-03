@@ -1,5 +1,7 @@
 package me.jeffshaw.depthfirst
 
+import scala.collection.GenTraversableOnce
+
 sealed trait Op {
   /*
   As we go through the stack, we lose type information.
@@ -18,7 +20,7 @@ object Op {
       Elem.Map(f, ops, values)
   }
 
-  case class FlatMap(f: Any => TraversableOnce[Any]) extends Op {
+  case class FlatMap(f: Any => GenTraversableOnce[Any]) extends Op {
     override private[depthfirst] def toElem(ops: List[Op], values: Iterator[Any]): Elem =
       Elem.FlatMap(f, ops, values)
   }

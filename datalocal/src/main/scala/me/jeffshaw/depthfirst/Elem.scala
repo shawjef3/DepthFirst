@@ -1,5 +1,7 @@
 package me.jeffshaw.depthfirst
 
+import scala.collection.GenTraversableOnce
+
 private sealed trait Elem {
   val ops: List[Op]
 
@@ -21,7 +23,7 @@ private object Elem {
   ) extends Elem
 
   case class FlatMap(
-    f: Any => TraversableOnce[Any],
+    f: Any => GenTraversableOnce[Any],
     override val ops: List[Op],
     override val values: Iterator[Any]
   ) extends Elem

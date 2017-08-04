@@ -1,7 +1,9 @@
 package me.jeffshaw.depthfirst
 
+import scala.collection.GenTraversableOnce
+
 class DepthFirst[In, Out] private (
-  values: => TraversableOnce[In],
+  values: => GenTraversableOnce[In],
   ops: List[Op]
 ) extends TraversableOnce[Out] {
 
@@ -14,9 +16,9 @@ class DepthFirst[In, Out] private (
 
   def flatMap[
     NextOut
-  ](f: Out => TraversableOnce[NextOut]
+  ](f: Out => GenTraversableOnce[NextOut]
   ): DepthFirst[In, NextOut] = {
-    new DepthFirst[In, NextOut](values, Op.FlatMap(f.asInstanceOf[Any => TraversableOnce[Any]]) :: ops)
+    new DepthFirst[In, NextOut](values, Op.FlatMap(f.asInstanceOf[Any => GenTraversableOnce[Any]]) :: ops)
   }
 
   def flatMap[
@@ -74,12 +76,12 @@ object DepthFirst {
 
   def apply[
     In
-  ](values: => TraversableOnce[In]
+  ](values: => GenTraversableOnce[In]
   ): DepthFirst[In, In] =
     new DepthFirst[In, In](values, List())
 
   def iterator[In, Out](
-    values: TraversableOnce[In],
+    values: GenTraversableOnce[In],
     op: Op,
     ops: Op*
   ): Iterator[Out] = {

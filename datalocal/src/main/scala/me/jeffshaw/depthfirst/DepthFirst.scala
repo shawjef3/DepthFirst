@@ -3,6 +3,7 @@ package me.jeffshaw.depthfirst
 import java.util.Spliterator
 import java.util.function.Consumer
 import java.util.stream.StreamSupport
+import scala.collection.GenTraversableOnce
 import scala.collection.JavaConverters._
 
 class DepthFirst[Out] private (
@@ -14,7 +15,7 @@ class DepthFirst[Out] private (
 
   def flatMap[
     NextOut
-  ](f: Out => TraversableOnce[NextOut]
+  ](f: Out => GenTraversableOnce[NextOut]
   ): DepthFirst[NextOut] = {
     new DepthFirst(inner.flatMap((x: Out) => DepthFirst.toStream(f(x))))
   }
@@ -65,11 +66,11 @@ object DepthFirst {
 
   def apply[
     In
-  ](values: TraversableOnce[In]
+  ](values: GenTraversableOnce[In]
   ): DepthFirst[In] =
     new DepthFirst[In](toStream(values))
 
-  def toStream[T](t: TraversableOnce[T]): java.util.stream.Stream[T] = {
+  def toStream[T](t: GenTraversableOnce[T]): java.util.stream.Stream[T] = {
     StreamSupport.stream(
       new Spliterator[T] {
         val i = t.toIterator

@@ -10,11 +10,6 @@ sealed trait Op {
 }
 
 object Op {
-  case class DlfFlatMap(f: Any => DepthFirst[Any, Any]) extends Op {
-    override private[depthfirst] def toElem(ops: List[Op], values: Iterator[Any]): Elem =
-      Elem.DlfFlatMap(f, ops, values)
-  }
-
   case class Map(f: Any => Any) extends Op {
     override private[depthfirst] def toElem(ops: List[Op], values: Iterator[Any]): Elem =
       Elem.Map(f, ops, values)

@@ -21,14 +21,6 @@ class DepthFirst[In, Out] private (
     new DepthFirst[In, NextOut](values, Op.FlatMap(f.asInstanceOf[Any => GenTraversableOnce[Any]]) :: ops)
   }
 
-  def flatMap[
-    NextOut
-  ](f: Out => DepthFirst[Out, NextOut]
-  )(implicit d: DummyImplicit
-  ): DepthFirst[In, NextOut] = {
-    new DepthFirst[In, NextOut](values, Op.DlfFlatMap(f.asInstanceOf[Any => DepthFirst[Any, Any]]) :: ops)
-  }
-
   def withFilter(f: Out => Boolean): DepthFirst[In, Out] = {
     new DepthFirst[In, Out](values, Op.Filter(f.asInstanceOf[Any => Boolean]) :: ops)
   }

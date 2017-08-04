@@ -35,20 +35,7 @@ private class Stack[Out] private (
               }
 
             case Elem.FlatMap(f, fs, _) =>
-              val fResults = f(value)
-
-              fs match {
-                case nextF::remainingFs =>
-                  stack = nextF.toElem(remainingFs, fResults.toIterator)::stack
-                  maybeValues = None
-
-                case Nil =>
-                  maybeValues = Some(Stack.Value.Many(fResults.asInstanceOf[TraversableOnce[Out]]))
-              }
-
-            case Elem.DlfFlatMap(f, fs, _) =>
-              val innerDlf = f(value)
-              val fResults = innerDlf.toIterator
+              val fResults = f(value).toIterator
 
               fs match {
                 case nextF::remainingFs =>
@@ -56,7 +43,7 @@ private class Stack[Out] private (
                   maybeValues = None
 
                 case Nil =>
-                  maybeValues = Some(Stack.Value.Many(fResults.toTraversable.asInstanceOf[TraversableOnce[Out]]))
+                  maybeValues = Some(Stack.Value.Many(fResults.asInstanceOf[TraversableOnce[Out]]))
               }
 
             case Elem.Map(f, fs, _) =>

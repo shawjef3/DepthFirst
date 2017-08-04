@@ -1,7 +1,6 @@
 package me.jeffshaw.depthfirst
 
-import java.util.Spliterator
-import java.util.function.Consumer
+import java.util.Spliterators
 import java.util.stream.StreamSupport
 import scala.collection.GenTraversableOnce
 import scala.collection.JavaConverters._
@@ -71,27 +70,9 @@ object DepthFirst {
     new DepthFirst[In](toStream(values))
 
   def toStream[T](t: GenTraversableOnce[T]): java.util.stream.Stream[T] = {
+    val iterator = t.toIterator.asJava
     StreamSupport.stream(
-      new Spliterator[T] {
-        val i = t.toIterator
-        @volatile var advances = 0L
-
-        override def characteristics(): Int = 0
-
-        override def trySplit(): Spliterator[T] = null
-
-        override def tryAdvance(action: Consumer[_ >: T]): Boolean =
-          if (i.hasNext) {
-            action.accept(i.next())
-            advances += 1L
-            true
-          } else false
-
-        override def estimateSize(): Long =
-          if (t.hasDefiniteSize)
-            t.size - advances
-          else Long.MaxValue
-      },
+      Spliterators.spliteratorUnknownSize(iterator, 0),
       false
     )
   }

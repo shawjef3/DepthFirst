@@ -95,15 +95,4 @@ object DepthFirst {
     )
   }
 
-  def main(args: Array[String]): Unit = {
-    val iterationCount = 20
-    val values = Array.fill(10000000)(0)
-    var df = DepthFirst(values)
-    for (i <- 1 to iterationCount) {
-      df = df.flatMap(x => Array(x))
-    }
-    val i = df.toIterator
-    for (_ <- i) ()
-  }
-
 }

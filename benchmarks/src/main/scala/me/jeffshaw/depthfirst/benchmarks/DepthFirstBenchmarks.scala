@@ -39,7 +39,7 @@ class DepthFirstBenchmarks {
   def classic(): Unit = {
     var result = values
     for (i <- 1 to iterationCount) {
-      result = result.flatMap(x => Vector(x))
+      result = result.flatMap(x => Array(x))
     }
   }
 
@@ -59,9 +59,9 @@ class DepthFirstBenchmarks {
   @BenchmarkMode(Array(Mode.AverageTime))
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
   def depthFirst(): Unit = {
-    var df = DepthFirst(values)
+    var df = DepthFirst(valuesBoxedArray)
     for (i <- 1 to iterationCount) {
-      df = df.flatMap(x => Vector(x))
+      df = df.flatMap(x => Array(x))
     }
     val i = df.toIterator
     for (_ <- i) ()

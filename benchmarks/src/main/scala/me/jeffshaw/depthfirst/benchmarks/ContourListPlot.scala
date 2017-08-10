@@ -19,7 +19,7 @@ case class ContourListPlot(
   def mathematica(base: String, comparison: String): String = {
     val values = mathematicaValues.map(_.mkString("{", ",", "}")).mkString("{", ",", "}")
     val cacheMb = cache / 1024 / 1024
-    val plotLabel = "\"" + s"$base vs $comparison, cache ${cacheMb}MB, duplication factor $duplicationFactor" + "\""
+    val plotLabel = "\"" + s"$base vs $comparison,\\ncache ${cacheMb}MB, duplication factor $duplicationFactor" + "\""
     s"""<| "values" ->  $values, "plotLabel" -> $plotLabel |>"""
   }
 }
@@ -40,9 +40,13 @@ object ContourListPlot {
     h.setJdbcUrl(args(0))
     val pool = Pool(h)
     pool.withConnection {implicit connection =>
-      val dataSets = list(args(1), args(2)).vector().map(_.mathematica(args(1), args(2))).mkString("{", ",", "}")
+      val base = args(1)
+      val comparison = args(2)
+      val dataSets = list(base, comparison).vector().map(_.mathematica(base, comparison)).mkString("{", ",", "}")
       println(
-        s"""dataSets := $dataSets
+        s"""(* $base vs $comparison *)
+           |
+           |dataSets := $dataSets
            |
            |ListContourPlot[
            | #values,

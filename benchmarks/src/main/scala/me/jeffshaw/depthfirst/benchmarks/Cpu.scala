@@ -7,11 +7,11 @@ import scala.sys.process._
   */
 object Cpu {
   private def windowsGetCpu(): String = {
-    "wmic cpu get Name".lineStream(1)
+    "wmic cpu get Name".lineStream(2).trim()
   }
 
   private def macGetCpu(): String = {
-    "sysctl -n machdep.cpu.brand_string".lineStream.head
+    "sysctl -n machdep.cpu.brand_string".lineStream.head.trim()
   }
 
   private def linuxGetCpu(): String = {

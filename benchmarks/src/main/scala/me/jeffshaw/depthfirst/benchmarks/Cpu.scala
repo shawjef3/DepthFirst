@@ -11,11 +11,11 @@ object Cpu {
   }
 
   private def macGetCpu(): String = {
-    "sysctl -n machdep.cpu.brand_string".lineStream.head.trim()
+    Process(Seq("sysctl", "-n", "machdep.cpu.brand_string")).lineStream.head.trim()
   }
 
   private def linuxGetCpu(): String = {
-    "cat /proc/cpuinfo  | grep 'model name'".lineStream.head.split(":")(1).trim()
+    (Process(Seq("cat", "/proc/cpuinfo")) #| Process(Seq("grep", "model name"))).lineStream.head.split(':')(1).trim
   }
 
   val name: String =

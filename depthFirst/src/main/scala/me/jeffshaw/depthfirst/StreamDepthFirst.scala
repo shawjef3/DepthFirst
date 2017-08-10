@@ -1,12 +1,12 @@
 package me.jeffshaw.depthfirst
 
 import java.util.Spliterators
-import java.util.stream.StreamSupport
+import java.util.stream.{Stream, StreamSupport}
 import scala.collection.GenTraversableOnce
 import scala.collection.JavaConverters._
 
 class StreamDepthFirst[Out] private (
-  inner: java.util.stream.Stream[Out]
+  inner: Stream[Out]
 ) extends TraversableOnce[Out] {
 
   def map[NextOut](f: Out => NextOut): StreamDepthFirst[NextOut] =
@@ -53,7 +53,7 @@ class StreamDepthFirst[Out] private (
 
   override def isTraversableAgain: Boolean = false
 
-  override def toStream: Stream[Out] = toIterator.toStream
+  override def toStream: scala.Stream[Out] = toIterator.toStream
 
   override def toIterator: Iterator[Out] = {
     inner.iterator().asScala
@@ -69,7 +69,7 @@ object StreamDepthFirst {
   ): StreamDepthFirst[In] =
     new StreamDepthFirst[In](toStream(values))
 
-  def toStream[T](t: GenTraversableOnce[T]): java.util.stream.Stream[T] = {
+  def toStream[T](t: GenTraversableOnce[T]): Stream[T] = {
     val iterator = t.toIterator.asJava
     StreamSupport.stream(
       Spliterators.spliteratorUnknownSize(iterator, 0),

@@ -31,8 +31,10 @@ object Cpu {
   val cpuIds =
     Map(
       "AMD Ryzen 7 1700 Eight-Core Processor" -> 1,
+      "Intel(R) Xeon(R) CPU E5-2697A v4 @ 2.60GHz" -> 2,
       "Intel(R) Core(TM) i7-4980HQ CPU @ 2.80GHz" -> 3,
-      "Intel(R) Xeon(R) CPU E5-2650L v3 @ 1.80GHz" -> 4
+      "Intel(R) Xeon(R) CPU E5-2650L v3 @ 1.80GHz" -> 4,
+      "Intel(R) Xeon(R) CPU E5-2650 v4 @ 2.20GHz" -> 5
     )
 
   val id = cpuIds(name)

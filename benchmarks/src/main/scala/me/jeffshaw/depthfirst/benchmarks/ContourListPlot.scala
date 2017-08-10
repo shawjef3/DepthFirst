@@ -17,13 +17,10 @@ case class ContourListPlot(
   }
 
   val mathematica: String = {
-    s"""(* $cpu, $cache, duplication factor $duplicationFactor *)
-      |ListContourPlot[
-      | ${mathematicaValues.map(_.mkString("{", ",", "}")).mkString("{", ",", "}")},
-      |FrameLabel -> {Elements, FlatMaps},
-      | PlotLegends -> BarLegend[Automatic, LegendLabel -> "% Improvement"],
-      | ContourLabels -> True, PlotLabel -> "cache ${cache}, duplication factor $duplicationFactor"]
-    """.stripMargin
+    val values = mathematicaValues.map(_.mkString("{", ",", "}")).mkString("{", ",", "}")
+    val cacheMb = cache / 1024 / 1024
+    val plotLabel = "\"" + s"cache ${cacheMb}MB, duplication factor $duplicationFactor" + "\""
+    s"""<| "values" ->  $values, "plotLabel" -> $plotLabel |>"""
   }
 }
 
@@ -42,7 +39,17 @@ object ContourListPlot {
     h.setJdbcUrl("jdbc:postgresql://psql.jeffshaw.me/data_local_flatmap?user=postgres&password=ofPMstLSqmsGr4r5")
     val pool = Pool(h)
     pool.withConnection {implicit connection =>
-      list.iterator.foreach(x => println(x.mathematica))
+      val dataSets = list.vector().map(_.mathematica).mkString("{", ",", "}")
+      println(
+        s"""dataSets := $dataSets
+           |
+           |ListContourPlot[
+           | #values,
+           |FrameLabel -> {Elements, FlatMaps},
+           | PlotLegends -> BarLegend[Automatic, LegendLabel -> "% Improvement"],
+           | ContourLabels -> True, PlotLabel -> #plotLabel]& /@ dataSets
+           |""".stripMargin
+      )
     }
   }
 

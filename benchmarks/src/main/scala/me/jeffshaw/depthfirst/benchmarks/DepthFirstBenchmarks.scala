@@ -10,6 +10,8 @@ import scala.collection.generic.CanBuildFrom
 @JmhState(Scope.Thread)
 class DepthFirstBenchmarks {
 
+  Priority.set()
+
   @Param(Array("0", "1", "16", "256", "1024", "4096"))
   var valueCount: Int = _
 

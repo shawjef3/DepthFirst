@@ -5,7 +5,7 @@ import scala.sys.process._
 object Priority {
 
   private val logger =
-    ProcessLogger(println(_))
+    ProcessLogger(Function.const(()) _)
 
   def pid(): String =
     java.lang.management.ManagementFactory.getRuntimeMXBean.getName.split('@')(0)

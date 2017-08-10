@@ -1,18 +1,19 @@
 package me.jeffshaw.depthfirst.benchmarks
 
 import java.util.concurrent.TimeUnit
-import me.jeffshaw.depthfirst.DepthFirst
+import java.util.stream.{Stream => JavaStream}
+import me.jeffshaw.depthfirst.{StackDepthFirst, StreamDepthFirst}
 import org.openjdk.jmh.annotations.{State => JmhState, _}
+import scala.collection.generic.CanBuildFrom
 
+@Fork(jvmArgs = Array("-Xms7g"))
 @JmhState(Scope.Thread)
 class DepthFirstBenchmarks {
 
-  @Param(Array("0", "1","16","256","4096","65536","1048576","16777216"))
+  @Param(Array("0", "1", "16", "256", "1024", "4096"))
   var valueCount: Int = _
 
   var values: Array[Int] = _
-
-  var valuesSeq: Seq[Int] = _
 
   var valuesVector: Vector[Int] = _
 
@@ -20,47 +21,38 @@ class DepthFirstBenchmarks {
 
   var valuesStream: Stream[Int] = _
 
-  @Param(Array("1","2","4","8"))
+  def valuesJavaStream: JavaStream[Int] =
+    JavaStream.of(values: _*)
+
+  @Param(Array("1", "2", "4", "8"))
   var iterationCount: Int = _
+
+  @Param(Array("1", "2", "4"))
+  var duplicationFactor: Int = _
+
+  def duplicate[F[_]](x: Int)(implicit canBuildFrom: CanBuildFrom[_, Int, F[Int]]): F[Int] = {
+    val builder = canBuildFrom()
+    builder.sizeHint(duplicationFactor)
+    for (i <- 0 until duplicationFactor)
+      builder += x + i
+    builder.result()
+  }
 
   @Setup(Level.Iteration)
   def setup(): Unit = {
-    values = java.util.Arrays.copyOf(DepthFirstBenchmarks.values, valueCount)
-    valuesSeq = values.toSeq
-//    valuesList = values.toList
-//    valuesStream = values.toStream
+    values = DepthFirstBenchmarks.values.take(valueCount)
+    valuesList = values.toList
+    valuesStream = values.toStream
     valuesVector = values.toVector
   }
 
-//  @Benchmark
-  @BenchmarkMode(Array(Mode.AverageTime))
-  @OutputTimeUnit(TimeUnit.MICROSECONDS)
-  def classicVector(): Unit = {
-    var result = values
-    for (_ <- 1 until iterationCount) {
-      result = result.flatMap(x => Vector(x))
-    }
-    for (r <- result) r
-  }
-
-  //  @Benchmark
+  @Benchmark
   @BenchmarkMode(Array(Mode.AverageTime))
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
   def classicList(): Unit = {
-    var result = values
-    for (_ <- 1 until iterationCount) {
-      result = result.flatMap(x => List(x))
-    }
-    for (r <- result) r
-  }
-
-  //  @Benchmark
-  @BenchmarkMode(Array(Mode.AverageTime))
-  @OutputTimeUnit(TimeUnit.MICROSECONDS)
-  def stream(): Unit = {
-    var result = valuesStream
-    for (_ <- 1 until iterationCount) {
-      result = result.flatMap(x => Stream(x))
+    var result = valuesList
+    for (_ <- 0 until iterationCount) {
+      result = result.flatMap(duplicate[List])
     }
     for (r <- result) r
   }
@@ -68,38 +60,108 @@ class DepthFirstBenchmarks {
   @Benchmark
   @BenchmarkMode(Array(Mode.AverageTime))
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
-  def originalDepthFirstVector(): Unit = {
-    var result = DepthFirst(valuesVector)
-    for (_ <- 1 to iterationCount) {
-      result = result.flatMap(x => Vector(x))
+  def stackDepthFirstList(): Unit = {
+    var result = StackDepthFirst(valuesList)
+    for (_ <- 0 until iterationCount) {
+      result = result.flatMap(duplicate[List])
     }
     for (_ <- result) ()
   }
 
-  //  @Benchmark
+  @Benchmark
   @BenchmarkMode(Array(Mode.AverageTime))
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
-  def depthFirstList(): Unit = {
-    var result = DepthFirst(valuesList)
-    for (_ <- 1 to iterationCount) {
-      result = result.flatMap(x => List(x))
+  def streamDepthFirstList(): Unit = {
+    var result = StreamDepthFirst(valuesList)
+    for (_ <- 0 until iterationCount) {
+      result = result.flatMap(duplicate[List])
     }
     for (_ <- result) ()
   }
 
-  //  @Benchmark
+  @Benchmark
+  @BenchmarkMode(Array(Mode.AverageTime))
+  @OutputTimeUnit(TimeUnit.MICROSECONDS)
+  def classicStream(): Unit = {
+    var result = valuesStream
+    for (_ <- 0 until iterationCount) {
+      result = result.flatMap(duplicate[Stream])
+    }
+    for (r <- result) r
+  }
+
+  @Benchmark
+  @BenchmarkMode(Array(Mode.AverageTime))
+  @OutputTimeUnit(TimeUnit.MICROSECONDS)
+  def stackDepthFirstStream(): Unit = {
+    var result = StackDepthFirst(valuesStream)
+    for (_ <- 0 until iterationCount) {
+      result = result.flatMap(duplicate[Stream])
+    }
+    for (r <- result) r
+  }
+
+  @Benchmark
+  @BenchmarkMode(Array(Mode.AverageTime))
+  @OutputTimeUnit(TimeUnit.MICROSECONDS)
+  def streamDepthFirstStream(): Unit = {
+    var result = StreamDepthFirst(valuesStream)
+    for (_ <- 0 until iterationCount) {
+      result = result.flatMap(duplicate[Stream])
+    }
+    for (r <- result) r
+  }
+
+  @Benchmark
+  @BenchmarkMode(Array(Mode.AverageTime))
+  @OutputTimeUnit(TimeUnit.MICROSECONDS)
+  def classicVector(): Unit = {
+    var result = valuesVector
+    for (_ <- 0 until iterationCount) {
+      result = result.flatMap(duplicate[Vector])
+    }
+    for (r <- result) r
+  }
+
+  @Benchmark
+  @BenchmarkMode(Array(Mode.AverageTime))
+  @OutputTimeUnit(TimeUnit.MICROSECONDS)
+  def stackDepthFirstVector(): Unit = {
+    var result = StackDepthFirst(valuesVector)
+    for (_ <- 0 until iterationCount) {
+      result = result.flatMap(duplicate[Vector])
+    }
+    for (r <- result) r
+  }
+
+  @Benchmark
+  @BenchmarkMode(Array(Mode.AverageTime))
+  @OutputTimeUnit(TimeUnit.MICROSECONDS)
+  def streamDepthFirstVector(): Unit = {
+    var result = StreamDepthFirst(valuesVector)
+    for (_ <- 0 until iterationCount) {
+      result = result.flatMap(duplicate[Vector])
+    }
+    for (r <- result) r
+  }
+
+  @Benchmark
   @BenchmarkMode(Array(Mode.AverageTime))
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
   def javaStream(): Unit = {
-    var result = DepthFirst(values)
-    for (i <- 1 until iterationCount) {
-      result = result.flatMap(x => Array(x))
+    var result = valuesJavaStream
+    for (i <- 0 until iterationCount) {
+      result = result.flatMap((x: Int) => JavaStream.of(duplicate[Array](x): _*))
     }
-    for (r <- result) r
+    result.forEach((x: Int) => x)
   }
 
 }
 
 object DepthFirstBenchmarks {
-  val values: Array[Int] = Array.fill(16777216)(util.Random.nextInt())
+  val values = {
+    val r = new util.Random(0L)
+    Array.tabulate(4096)(_ => r.nextInt())
+  }
+
 }

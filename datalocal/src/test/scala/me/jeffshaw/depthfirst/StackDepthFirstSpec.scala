@@ -4,11 +4,11 @@ import org.scalacheck.Gen
 import org.scalatest.FunSuite
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 
-class DepthFirstSpec extends FunSuite with GeneratorDrivenPropertyChecks {
+class StackDepthFirstSpec extends FunSuite with GeneratorDrivenPropertyChecks {
 
   test("works") {
     val odds = for {
-      x <- DepthFirst(Vector.tabulate(10)(identity) ++ Vector.tabulate(10)(identity))
+      x <- StackDepthFirst(Vector.tabulate(10)(identity) ++ Vector.tabulate(10)(identity))
       if x % 2 == 0
       even <- Set(x)
       even_ <- Stream(even)
@@ -21,21 +21,21 @@ class DepthFirstSpec extends FunSuite with GeneratorDrivenPropertyChecks {
 
     //Fully expanded version of `actual`.
     val actual_ =
-      DepthFirst[Int](
+      StackDepthFirst[Int](
         Vector.tabulate(10)(identity)
       ).withFilter(
         x => x % 2 == 0
       ).flatMap[Int](
         (x: Int) =>
-          DepthFirst[Int](
+          StackDepthFirst[Int](
             0 to x
           ).map[Int](identity)
       )
 
     val actual = for {
-      x <- DepthFirst(Vector.tabulate(10)(identity))
+      x <- StackDepthFirst(Vector.tabulate(10)(identity))
       if x % 2 == 0
-      toX <- DepthFirst(0 to x)
+      toX <- StackDepthFirst(0 to x)
     } yield toX
 
     val expected =
@@ -57,7 +57,7 @@ class DepthFirstSpec extends FunSuite with GeneratorDrivenPropertyChecks {
           if value == 0
         } yield value
 
-      val actual = DepthFirst.iterator[Int, Int](values, Op.Filter(x => x == 0)).toVector
+      val actual = StackDepthFirst.iterator[Int, Int](values, Op.Filter(x => x == 0)).toVector
 
       assertResult(expected)(actual)
     }
@@ -71,7 +71,7 @@ class DepthFirstSpec extends FunSuite with GeneratorDrivenPropertyChecks {
           value <- Vector(value, value + 1)
         } yield value
 
-      val actual = DepthFirst.iterator[Int, Int](values, Op.FlatMap((x: Any) => Vector(x, x.asInstanceOf[Int] + 1))).toVector
+      val actual = StackDepthFirst.iterator[Int, Int](values, Op.FlatMap((x: Any) => Vector(x, x.asInstanceOf[Int] + 1))).toVector
 
       assertResult(expected)(actual)
     }
@@ -84,7 +84,7 @@ class DepthFirstSpec extends FunSuite with GeneratorDrivenPropertyChecks {
           value <- values
         } yield value + 1
 
-      val actual = DepthFirst.iterator[Int, Int](values, Op.Map((x: Any) => x.asInstanceOf[Int] + 1)).toVector
+      val actual = StackDepthFirst.iterator[Int, Int](values, Op.Map((x: Any) => x.asInstanceOf[Int] + 1)).toVector
 
       assertResult(expected)(actual)
     }

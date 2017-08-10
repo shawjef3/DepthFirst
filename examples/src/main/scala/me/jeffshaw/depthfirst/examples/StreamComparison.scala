@@ -1,6 +1,10 @@
 package me.jeffshaw.depthfirst.examples
 
-import me.jeffshaw.depthfirst.DepthFirst
+import me.jeffshaw.depthfirst.StackDepthFirst
+
+/*
+Two objects, that when executed, shows the evaluation order of Stream and DepthFirst.
+ */
 
 object StreamExample extends App {
 
@@ -26,7 +30,7 @@ object StreamExample extends App {
 
 }
 
-object DlfExample extends App {
+object DepthFirstExample extends App {
 
   def f(name: String)(x: Int): Vector[Int] = {
     println(s"$name on $x")
@@ -41,7 +45,7 @@ object DlfExample extends App {
 
   val results =
     for {
-      v <- DepthFirst(values)
+      v <- StackDepthFirst(values)
       f0_ <- f0(v)
       f1_ <- f1(v)
     } yield f1_

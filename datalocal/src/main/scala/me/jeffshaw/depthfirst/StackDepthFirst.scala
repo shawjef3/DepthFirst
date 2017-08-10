@@ -2,7 +2,7 @@ package me.jeffshaw.depthfirst
 
 import scala.collection.GenTraversableOnce
 
-class DepthFirst[In, Out] private (
+class StackDepthFirst[In, Out] private (
   values: => GenTraversableOnce[In],
   ops: List[Op]
 ) extends TraversableOnce[Out] {
@@ -10,19 +10,19 @@ class DepthFirst[In, Out] private (
   def map[
     NextOut
   ](f: Out => NextOut
-  ): DepthFirst[In, NextOut] = {
-    new DepthFirst[In, NextOut](values, Op.Map(f.asInstanceOf[Any => Any]) :: ops)
+  ): StackDepthFirst[In, NextOut] = {
+    new StackDepthFirst[In, NextOut](values, Op.Map(f.asInstanceOf[Any => Any]) :: ops)
   }
 
   def flatMap[
     NextOut
   ](f: Out => GenTraversableOnce[NextOut]
-  ): DepthFirst[In, NextOut] = {
-    new DepthFirst[In, NextOut](values, Op.FlatMap(f.asInstanceOf[Any => GenTraversableOnce[Any]]) :: ops)
+  ): StackDepthFirst[In, NextOut] = {
+    new StackDepthFirst[In, NextOut](values, Op.FlatMap(f.asInstanceOf[Any => GenTraversableOnce[Any]]) :: ops)
   }
 
-  def withFilter(f: Out => Boolean): DepthFirst[In, Out] = {
-    new DepthFirst[In, Out](values, Op.Filter(f.asInstanceOf[Any => Boolean]) :: ops)
+  def withFilter(f: Out => Boolean): StackDepthFirst[In, Out] = {
+    new StackDepthFirst[In, Out](values, Op.Filter(f.asInstanceOf[Any => Boolean]) :: ops)
   }
 
   //TraversableOnce
@@ -61,7 +61,7 @@ class DepthFirst[In, Out] private (
     val revOps = ops.reverse
     revOps match {
       case head::tail =>
-        DepthFirst.iterator[In, Out](values, head, tail: _*)
+        StackDepthFirst.iterator[In, Out](values, head, tail: _*)
       case Nil =>
         values.toIterator.asInstanceOf[Iterator[Out]]
     }
@@ -69,13 +69,13 @@ class DepthFirst[In, Out] private (
 
 }
 
-object DepthFirst {
+object StackDepthFirst {
 
   def apply[
     In
   ](values: => GenTraversableOnce[In]
-  ): DepthFirst[In, In] =
-    new DepthFirst[In, In](values, List())
+  ): StackDepthFirst[In, In] =
+    new StackDepthFirst[In, In](values, List())
 
   def iterator[In, Out](
     values: GenTraversableOnce[In],

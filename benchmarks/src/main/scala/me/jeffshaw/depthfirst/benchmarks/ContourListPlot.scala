@@ -26,6 +26,19 @@ case class ContourListPlot(
 
 object ContourListPlot {
 
+  val collections = Set("Stream", "List", "Vector")
+
+  val scalaComparisons =
+    for {
+      collection <- collections
+      comparison <- Set("streamDepthFirst", "stackDepthFirst")
+    } yield ("classic" + collection, comparison + collection)
+
+  val javaStreamComparisons =
+    for {
+      collection <- collections
+    } yield ("classic" + collection, "javaStream")
+
   def list(base: String, comparison: String): Select[ContourListPlot] =
     Select[ContourListPlot](
       s"""select cpu, cache, duplication_factor AS duplicationFactor, array_agg(ROW("values", iterations, improvement))
@@ -40,21 +53,25 @@ object ContourListPlot {
     h.setJdbcUrl(args(0))
     val pool = Pool(h)
     pool.withConnection {implicit connection =>
-      val base = args(1)
-      val comparison = args(2)
-      val dataSets = list(base, comparison).vector().map(_.mathematica(base, comparison)).mkString("{", ",", "}")
-      println(
-        s"""(* $base vs $comparison *)
-           |
-           |dataSets := $dataSets
-           |
-           |ListContourPlot[
-           | #values,
-           |FrameLabel -> {Elements, FlatMaps},
-           | PlotLegends -> BarLegend[Automatic, LegendLabel -> "% Improvement"],
-           | ContourLabels -> True, PlotLabel -> #plotLabel, ImageSize -> Medium]& /@ dataSets
-           |""".stripMargin
-      )
+      for {
+        (base, comparison) <- scalaComparisons
+      } {
+        val dataSets = list(base, comparison).vector().map(_.mathematica(base, comparison)).mkString("{", ",", "}")
+        println(
+          s"""(* $base vs $comparison*)
+             |
+             |dataSets := $dataSets
+             |
+             |ListContourPlot[#values, FrameLabel -> {Elements, FlatMaps},
+             |   ColorFunction -> ColorData[{"TemperatureMap", {-100, 100}}],
+             |   ColorFunctionScaling -> False,
+             |   PlotLegends ->
+             |    BarLegend[Automatic, LegendLabel -> "% Improvement"],
+             |   ContourLabels -> True, PlotLabel -> #plotLabel,
+             |   ImageSize -> Medium] & /@ dataSets
+             |""".stripMargin
+        )
+      }
     }
   }
 

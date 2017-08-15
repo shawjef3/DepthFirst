@@ -4,30 +4,33 @@ import scala.collection.GenTraversableOnce
 
 class StackDepthFirst[In, Out] private (
   values: => GenTraversableOnce[In],
-  ops: List[Op]
+  ops: DfList[Op]
 ) extends TraversableOnce[Out] {
 
   def map[
     NextOut
   ](f: Out => NextOut
   ): StackDepthFirst[In, NextOut] = {
-    new StackDepthFirst[In, NextOut](values, Op.Map(f.asInstanceOf[Any => Any]) :: ops)
+    new StackDepthFirst[In, NextOut](values, DfCons(Op.Map(f.asInstanceOf[Any => Any]), ops))
   }
 
   def flatMap[
     NextOut
   ](f: Out => GenTraversableOnce[NextOut]
   ): StackDepthFirst[In, NextOut] = {
-    new StackDepthFirst[In, NextOut](values, Op.FlatMap(f.asInstanceOf[Any => GenTraversableOnce[Any]]) :: ops)
+    new StackDepthFirst[In, NextOut](values, DfCons(Op.FlatMap(f.asInstanceOf[Any => GenTraversableOnce[Any]]), ops))
   }
 
   def withFilter(f: Out => Boolean): StackDepthFirst[In, Out] = {
-    new StackDepthFirst[In, Out](values, Op.Filter(f.asInstanceOf[Any => Boolean]) :: ops)
+    new StackDepthFirst[In, Out](values, DfCons(Op.Filter(f.asInstanceOf[Any => Boolean]), ops))
   }
 
   //TraversableOnce
 
-  override def foreach[U](f: (Out) => U): Unit = toIterator.foreach(f)
+  override def foreach[U](f: (Out) => U): Unit = {
+    val i = toIterator
+    i.foreach(f)
+  }
 
   override def isEmpty: Boolean =
     toIterator.isEmpty
@@ -59,12 +62,7 @@ class StackDepthFirst[In, Out] private (
 
   override def toIterator: Iterator[Out] = {
     val revOps = ops.reverse
-    revOps match {
-      case head::tail =>
-        StackDepthFirst.iterator[In, Out](values, head, tail: _*)
-      case Nil =>
-        values.toIterator.asInstanceOf[Iterator[Out]]
-    }
+    StackDepthFirst.iterator[In, Out](values, revOps)
   }
 
 }
@@ -75,29 +73,18 @@ object StackDepthFirst {
     In
   ](values: => GenTraversableOnce[In]
   ): StackDepthFirst[In, In] =
-    new StackDepthFirst[In, In](values, List())
+    new StackDepthFirst[In, In](values, DfList())
 
   def iterator[In, Out](
     values: GenTraversableOnce[In],
-    op: Op,
-    ops: Op*
+    ops: DfList[Op]
   ): Iterator[Out] = {
-    val stack = Stack(op.toElem(ops.toList, values.toIterator))
-
-    new Iterator[Out] {
-      var innerIterator: Iterator[Out] = Iterator()
-
-      override def hasNext: Boolean = {
-        while (!innerIterator.hasNext && !stack.isFinished) {
-          stack.step()
-          innerIterator = stack.valuesIterator
-        }
-
-        innerIterator.hasNext
-      }
-
-      override def next(): Out =
-        innerIterator.next()
+    if (ops.isEmpty)
+      values.toIterator.asInstanceOf[Iterator[Out]]
+    else {
+      val op = ops.head
+      val stack = Stack(op.toElem(ops, values.toIterator))
+      stack.iterator
     }
   }
 

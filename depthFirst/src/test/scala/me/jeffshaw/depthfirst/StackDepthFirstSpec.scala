@@ -57,7 +57,7 @@ class StackDepthFirstSpec extends FunSuite with GeneratorDrivenPropertyChecks {
           if value == 0
         } yield value
 
-      val actual = StackDepthFirst.iterator[Int, Int](values, Op.Filter(x => x == 0)).toVector
+      val actual = StackDepthFirst.iterator[Int, Int](values, DfList(Op.Filter(x => x == 0))).toVector
 
       assertResult(expected)(actual)
     }
@@ -71,7 +71,7 @@ class StackDepthFirstSpec extends FunSuite with GeneratorDrivenPropertyChecks {
           value <- Vector(value, value + 1)
         } yield value
 
-      val actual = StackDepthFirst.iterator[Int, Int](values, Op.FlatMap((x: Any) => Vector(x, x.asInstanceOf[Int] + 1))).toVector
+      val actual = StackDepthFirst.iterator[Int, Int](values, DfList(Op.FlatMap((x: Any) => Vector(x, x.asInstanceOf[Int] + 1)))).toVector
 
       assertResult(expected)(actual)
     }
@@ -84,7 +84,7 @@ class StackDepthFirstSpec extends FunSuite with GeneratorDrivenPropertyChecks {
           value <- values
         } yield value + 1
 
-      val actual = StackDepthFirst.iterator[Int, Int](values, Op.Map((x: Any) => x.asInstanceOf[Int] + 1)).toVector
+      val actual = StackDepthFirst.iterator[Int, Int](values, DfList(Op.Map((x: Any) => x.asInstanceOf[Int] + 1))).toVector
 
       assertResult(expected)(actual)
     }

@@ -64,7 +64,7 @@ class StreamDepthFirst[Out] private (
 object StreamDepthFirst {
 
   def apply[
-  In
+    In
   ](values: GenTraversableOnce[In]
   ): StreamDepthFirst[In] =
     new StreamDepthFirst[In](toStream(values))
@@ -75,6 +75,10 @@ object StreamDepthFirst {
       Spliterators.spliteratorUnknownSize(iterator, 0),
       false
     )
+  }
+
+  def iterator[T](t: GenTraversableOnce[T]): Iterator[T] = {
+    toStream[T](t).iterator().asScala
   }
 
 }

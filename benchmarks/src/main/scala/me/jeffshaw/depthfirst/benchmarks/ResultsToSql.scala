@@ -35,7 +35,7 @@ object ResultsToSql {
     val Microseconds = "microseconds"
     val MicrosecondsError = "microsecondsError"
 
-    val valuesMatcher = "\\[info\\] ([^ ]+) +(\\d+) +(\\d+) +(\\d+) +avgt +5 +([0-9.]+) . +([0-9.]+)  us/op".r(
+    val valuesMatcher = "\\[info\\] ([^ ]+) +(\\d+) +(\\d+) +(\\d+) +avgt +\\d+ +([0-9.]+) . +([0-9.]+)  us/op".r(
       Name, DuplicationFactor, Iterations, Values, Microseconds, MicrosecondsError
     )
 

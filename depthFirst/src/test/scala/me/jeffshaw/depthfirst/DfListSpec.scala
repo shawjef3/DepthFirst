@@ -65,7 +65,7 @@ class DfListSpec extends FunSuite with GeneratorDrivenPropertyChecks {
         val actual = dfList0_ ++ list1
         val expected = list0_ ++ list1
 
-        assertResult(expected)(actual)
+        assertResult(DfList(expected: _*))(actual)
       }
     }
   }
@@ -98,6 +98,32 @@ class DfListSpec extends FunSuite with GeneratorDrivenPropertyChecks {
     val actual = mapped.take(2)
 
     assertResult(expected)(actual)
+  }
+
+  test("map happens once") {
+    val l = DfList(1)
+    var runs = 0
+    val mapped = l.map { x =>
+      runs += 1
+      x
+    }
+
+    for (m <- mapped) m
+
+    assertResult(1)(runs)
+  }
+
+  test("flatMap happens once") {
+    val l = DfList(1)
+    var runs = 0
+    val mapped = l.flatMap { x =>
+      runs += 1
+      DfList(x)
+    }
+
+    for (m <- mapped) m
+
+    assertResult(1)(runs)
   }
 
 }

@@ -83,7 +83,7 @@ object StackDepthFirst {
       values.toIterator.asInstanceOf[Iterator[Out]]
     else {
       val op = ops.head
-      val stack = Stack(op.toElem(ops, values.toIterator))
+      val stack = Stack(op.toElem(ops.tail, values.toIterator))
       stack.iterator
     }
   }

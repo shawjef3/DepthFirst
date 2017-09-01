@@ -13,7 +13,6 @@ private class Stack[Out] private (
       Iterator.empty
     } else {
       val head = stack.head
-      val ss = stack.tail
       val values = head.values
 
       if (values.hasNext) {
@@ -64,7 +63,7 @@ private class Stack[Out] private (
         }
 
       } else {
-        stack = ss
+        stack = stack.tail
         Iterator.empty
       }
     }

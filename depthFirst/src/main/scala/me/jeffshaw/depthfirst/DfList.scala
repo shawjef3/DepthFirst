@@ -13,16 +13,16 @@ sealed abstract class DfList[+A] extends TraversableLike[A, DfList[A]] with Trav
 
   protected[depthfirst] def withOps[B](ops: DfList[Op]): DfList[B]
 
-  override def flatMap[B, That](f: (A) => GenTraversableOnce[B])(implicit bf: CanBuildFrom[DfList[A], B, That]) = {
+  override def flatMap[B, That](f: (A) => GenTraversableOnce[B])(implicit bf: CanBuildFrom[DfList[A], B, That]): That = {
     if (bf == DfList.CBF)
       appendOp(Op.FlatMap(f.asInstanceOf[Any => GenTraversableOnce[Any]])).asInstanceOf[That]
     else super.flatMap[B, That](f)
   }
 
-  override def map[B, That](f: (A) => B)(implicit bf: CanBuildFrom[DfList[A], B, That]) = {
+  override def map[B, That](f: (A) => B)(implicit bf: CanBuildFrom[DfList[A], B, That]): That = {
     if (bf == DfList.CBF) {
       val build = new DfList.Buffer[B]
-      for (value <- appendOp(Op.Map(f.asInstanceOf[Any => Any])).toIterator)
+      for (value <- appendOp(Op.Map(f.asInstanceOf[Any => Any])).asInstanceOf[DfList[B]].toIterator)
         build += value
 
       build.result().asInstanceOf[That]

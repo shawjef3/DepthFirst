@@ -9,8 +9,9 @@ Two objects, that when executed, shows the evaluation order of Stream and DepthF
 object VectorExample extends App {
 
   def f(name: String)(x: String): Vector[String] = {
-    println(s"$name on $x")
-    Vector(x, x + "dup")
+    val resultString = s"$name($x)"
+    println(resultString)
+    Vector(x, resultString)
   }
 
   def y(x: String): String = {
@@ -35,8 +36,9 @@ object VectorExample extends App {
 object StreamExample extends App {
 
   def f(name: String)(x: String): Stream[String] = {
-    println(s"$name on $x")
-    Stream(x, s"$name($x)")
+    val resultString = s"$name($x)"
+    println(resultString)
+    Stream(x, resultString)
   }
 
   val f0 = f("f0") _
@@ -59,11 +61,10 @@ object StreamExample extends App {
 object DepthFirstExample extends App {
 
   def f(name: String)(x: String): Vector[String] = {
-    println(s"$name on $x")
-    Vector(x, s"$name($x)")
+    val resultString = s"$name($x)"
+    println(resultString)
+    Vector(x, resultString)
   }
-
-
 
   val f0 = f("f0") _
 
@@ -88,8 +89,9 @@ object JavaStreamExample extends App {
   import java.util.stream._
 
   def f(name: String)(x: String): Stream[String] = {
-    println(s"$name on $x")
-    Stream.of(x, s"$name($x)")
+    val resultString = s"$name($x)"
+    println(resultString)
+    Stream.of(x, resultString)
   }
 
   val f0: Function[String, Stream[String]] = f("f0") _

@@ -1,33 +1,18 @@
-# Depth First flatMap
+# Stackless flatMap
 
 by Jeff Shaw
 
 # Motivation
 
-While thinking about data locality, performance, and flatMap, I realized that for most data structures, flatMap behaves exactly the way we wouldn't want it to.
-
-Consider the order of operations for an eager data structure when performing the following.
-
-```scala
-val vv = Vector(...)
-for {
-  v0 <- vv
-  v1 <- f0(v0)
-  v2 <- f1(v1)
-} yield v2
-```
-
-First, `f0` is applied to each element of `vv`. Second, `f1` is applied to each element of `vv.flatMap(f0)`. If `vv` or `vv.flatMap(f0)` are too large to fit into cache, then by the time `f1` runs, some of the values it will act on have been evicted and will have to be loaded from RAM.
-
-Ideally, we'd want to perform `f0` and `f1` in a depth first manner. This way, any uses of a value are more likely to be in cache, since the value was more recently used or created. Of course this isn't a guarantee.
+While thinking about data locality, performance, and flatMap, I created an implementation of flatMap that is independent of the collection type, and faster than the usual method for large numbers of flatMaps. Basically it eliminates intermediate collections. Use it when you have a large number of chained flatMaps.
 
 # Implementation
 
-I created a run-time for Scala's `for` syntax operations that performs them in a depth-first manner. It uses a stack of queues. A stack element is an operation to perform, along with the values for the operation. When a value is requested, operations are performed until a value without no further operations is found.
+I created a run-time for Scala's `for` syntax operations that performs them in a depth-first manner. It uses a stack of iterators. A stack element is an operation to perform, along with the values for the operation. When a value is requested, operations are performed until a value without no further operations is found.
 
-Clever readers will realize that this is similar to the way Stream works. If you have a Stream that is the result of various operations, and then ask for an element, the data structure will perform the minimum work to get it. In fact [a simple experiment](examples/src/main/scala/me/jeffshaw/depthfirst/examples/StreamComparison.scala) comparing the two shows similar behavior. I haven't thought deeply about why, but the depth first flatMap is faster for large data sets.
+Clever readers will realize that this is similar to the way Stream works. If you have a Stream that is the result of various operations, and then ask for an element, the data structure will perform the minimum work to get it.
 
-I have not analyzed the memory use of DepthFirst.
+I have not analyzed the memory use of Stackless.
 
 # Use
 
@@ -35,47 +20,55 @@ I have not analyzed the memory use of DepthFirst.
 
 The current draft is on Sonatype's Maven repository for Scala 2.10, 2.11 and 2.12.
 
-`"me.jeffshaw.depthfirst" %% "depthfirst" % "0.0-M1"`
+`"me.jeffshaw.stackless" %% "stackless" % "0.1"`
 
 ## Example
 
-`DataLocal` is a data structure that you build up using the familiar `for` syntax. The result is `TraversableOnce`, with the underlying implementation being an `Iterator`.
+`Stackless` is a data structure that you build up using the familiar `for` syntax. `filter` and `flatMap` do not execute your functions, but instead build an additional data structure, which is a `TraversableOnce`. You can force execution using `map`, `foreach`, `toIterator`, or any methods that use those methods, such as `==`.
 
 The following will print the results immediately.
 
 ```scala
-import me.jeffshaw.depthfirst.DepthFirst
+import me.jeffshaw.stackless.Stackless
 
-val vv = Vector(...)
+val vv = Vector(1,2,3)
+
+def bind(x: Int): Vector[Int] = Vector(x)
 
 for {
-  v0 <- DepthFirst(vv)
-  v1 <- f0(v0)
-  v2 <- f1(v1)
+  v0 <- Stackless(vv)
+  v1 <- bind(v0)
+  v2 <- bind(v1)
 } println(v2)
 ```
 
 The following will create the resulting collection before printing the results.
 
 ```scala
-import me.jeffshaw.depthfirst.DepthFirst
+import me.jeffshaw.stackless.Stackless
 
-val vv = Vector(...)
+val vv = Vector(1,2,3)
+
+def bind(x: Int): Vector[Int] = Vector(x)
 
 val vv_ = {
   for {
-    v0 <- DepthFirst(vv)
-    v1 <- f0(v0)
-    v2 <- f1(v1)
+    v0 <- Stackless(vv)
+    v1 <- bind(v0)
+    v2 <- bind(v1)
   } yield v2
 }.toVector
 
 println(vv_)
 ```
 
+## StacklessList
+
+StacklessList demonstrates a data structure that is inherently stackless. You can use StacklessList as you would List, although there are odd performance characteristics. For instance, if you append to the end of a StacklessList, it forces execution.
+
 # CPU Benchmarks
 
-I have run benchmarks using various sizes of `Vector[Int]`s, various numbers of `flatMap`s of `x => Vector(x)`, and on a few different CPUs. Generally speaking, if you are using collections on the order of 100,000, or have 4 or more flatMaps, maps, or filters, you'll gain 10% by using `DepthFirst`. The benefit increases as the collection size increases, the number of operations on the collection increases, or the amount of cache your CPU has increases.
+I have run benchmarks using various sizes of `Vector[Int]`s, various numbers of `flatMap`s of `x => Vector(x)`, and on a few different CPUs. Generally speaking, if you are using collections on the order of ______, or have _ or more flatMaps, you'll gain 10% by using `Stackless`. The benefit increases as the collection size increases, the number of flatMaps increases, or the amount of cache your CPU has increases.
 
 Following are graphs of the % improvement you can expect from overhead coming from your collection operations. I apologize for the inconsistent colors. I'll try to improve them in the future.
 

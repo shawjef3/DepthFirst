@@ -8,7 +8,7 @@ While thinking about data locality, performance, and flatMap, I created an imple
 
 # Implementation
 
-I created a run-time for Scala's `for` syntax operations that performs them in a depth-first manner. It uses a stack of iterators. A stack element is an operation to perform, along with the values for the operation. When a value is requested, operations are performed until a value without no further operations is found.
+I created a run-time for Scala's `for` syntax operations that performs them in a depth-first manner. It uses a stack of iterators. A stack element is an operation to perform, along with the values for the operation. When a value is requested, operations are performed until a value with no further operations is found.
 
 This is similar to the way Stream works. If you have a Stream that is the result of various operations, and then ask for an element, the data structure will perform the minimum work to get it.
 
@@ -70,7 +70,7 @@ Following are graphs of the % improvement you can expect from overhead coming fr
 
 [DepthFirstBenchmarks.scala](benchmarks/src/main/scala/me/jeffshaw/depthfirst/benchmarks/DepthFirstBenchmarks.scala)
 
-If the images aren't loading, try the [pdf](https://drive.google.com/open?id=0B8oSBVnQGD_wNV9YblNCVnVJU1k).
+If the images aren't loading, try the [pdf](https://drive.google.com/file/d/1BF1Ps3XMxM_eMu9IesyH_q38TumHn-PN/view?usp=sharing).
 
 ## vs Vector
 

@@ -3,50 +3,50 @@ package me.jeffshaw.depthfirst
 import scala.collection.generic.CanBuildFrom
 import scala.collection.{GenTraversableOnce, TraversableLike, mutable}
 
-sealed abstract class StacklessList[+A] extends TraversableLike[A, StacklessList[A]] with Traversable[A] {
+sealed abstract class DepthFirstList[+A] extends TraversableLike[A, DepthFirstList[A]] with Traversable[A] {
 
-  private[depthfirst] val ops: StacklessList[Op]
+  private[depthfirst] val ops: DepthFirstList[Op]
 
   protected def valuesIterator: Iterator[Any]
 
-  protected def appendOp[B](op: Op): StacklessList[B]
+  protected def appendOp[B](op: Op): DepthFirstList[B]
 
-  protected def withOps[B](ops: StacklessList[Op]): StacklessList[B]
+  protected def withOps[B](ops: DepthFirstList[Op]): DepthFirstList[B]
 
-  override def flatMap[B, That](f: (A) => GenTraversableOnce[B])(implicit bf: CanBuildFrom[StacklessList[A], B, That]): That = {
-    if (bf == StacklessList.CBF)
+  override def flatMap[B, That](f: (A) => GenTraversableOnce[B])(implicit bf: CanBuildFrom[DepthFirstList[A], B, That]): That = {
+    if (bf == DepthFirstList.CBF)
       appendOp(Op.FlatMap(f.asInstanceOf[Any => GenTraversableOnce[Any]])).asInstanceOf[That]
     else super.flatMap[B, That](f)
   }
 
-  override def map[B, That](f: (A) => B)(implicit bf: CanBuildFrom[StacklessList[A], B, That]): That = {
-    if (bf == StacklessList.CBF) {
-      val build = new StacklessList.Buffer[B]
-      for (value <- appendOp(Op.Map(f.asInstanceOf[Any => Any])).asInstanceOf[StacklessList[B]].toIterator)
+  override def map[B, That](f: (A) => B)(implicit bf: CanBuildFrom[DepthFirstList[A], B, That]): That = {
+    if (bf == DepthFirstList.CBF) {
+      val build = new DepthFirstList.Buffer[B]
+      for (value <- appendOp(Op.Map(f.asInstanceOf[Any => Any])).asInstanceOf[DepthFirstList[B]].toIterator)
         build += value
 
       build.result().asInstanceOf[That]
     } else super.map[B, That](f)
   }
 
-  override def withFilter(p: (A) => Boolean): StacklessList[A] =
+  override def withFilter(p: (A) => Boolean): DepthFirstList[A] =
     appendOp(Op.Filter(p.asInstanceOf[Any => Boolean]))
 
   override def foreach[U](f: (A) => U): Unit =
     toIterator.foreach(f)
 
-  def reverse: StacklessList[A]
+  def reverse: DepthFirstList[A]
 
   override def nonEmpty: Boolean = !isEmpty
 
   //TraversableLike
-  override protected[this] def newBuilder: mutable.Builder[A, StacklessList[A]] = new StacklessList.Buffer[A]
+  override protected[this] def newBuilder: mutable.Builder[A, DepthFirstList[A]] = new DepthFirstList.Buffer[A]
 
-  def :+[B >: A](that: B): StacklessList[B]
+  def :+[B >: A](that: B): DepthFirstList[B]
 }
 
-object StacklessList {
-  def apply[A](values: A*): StacklessList[A] = {
+object DepthFirstList {
+  def apply[A](values: A*): DepthFirstList[A] = {
     val builder = new Buffer[A]
     for (value <- values)
       builder += value
@@ -54,28 +54,28 @@ object StacklessList {
     builder.result()
   }
 
-  def empty[A]: StacklessList[A] =
-    StacklessNil
+  def empty[A]: DepthFirstList[A] =
+    DepthFirstNil
 
   /**
     * Similar to [[scala.collection.mutable.ListBuffer]], for quick building of DfList.
     * @tparam A
     */
-  final class Buffer[A] extends mutable.Builder[A, StacklessList[A]] {
+  final class Buffer[A] extends mutable.Builder[A, DepthFirstList[A]] {
 
-    private var start: StacklessList[A] = StacklessNil
-    private var last0: StacklessCons[A] = _
+    private var start: DepthFirstList[A] = DepthFirstNil
+    private var last0: DepthFirstCons[A] = _
     private var len: Int = 0
 
     def isEmpty: Boolean = len == 0
 
     override def +=(x: A): this.type = {
       if (isEmpty) {
-        last0 = new StacklessCons(x, StacklessNil, StacklessNil)
+        last0 = new DepthFirstCons(x, DepthFirstNil, DepthFirstNil)
         start = last0
       } else {
         val last1 = last0
-        last0 = new StacklessCons(x, StacklessNil, StacklessNil)
+        last0 = new DepthFirstCons(x, DepthFirstNil, DepthFirstNil)
         last1.tl = last0
       }
       len += 1
@@ -83,7 +83,7 @@ object StacklessList {
     }
 
     def prepend(x: A): this.type = {
-      val newElem = new StacklessCons(x, start, StacklessNil)
+      val newElem = new DepthFirstCons(x, start, DepthFirstNil)
       if (isEmpty)
         last0 = newElem
       start = newElem
@@ -92,12 +92,12 @@ object StacklessList {
     }
 
     override def clear(): Unit = {
-      start = StacklessNil
+      start = DepthFirstNil
       last0 = null
       len = 0
     }
 
-    def result(): StacklessList[A] = start
+    def result(): DepthFirstList[A] = start
 
     override def sizeHint(size: Int): Unit = ()
 
@@ -114,64 +114,64 @@ object StacklessList {
     override def apply() = new Buffer[Any]
   }
 
-  implicit def canBuildFrom[From, Elem]: CanBuildFrom[From, Elem, StacklessList[Elem]] = {
-    CBF.asInstanceOf[CanBuildFrom[From, Elem, StacklessList[Elem]]]
+  implicit def canBuildFrom[From, Elem]: CanBuildFrom[From, Elem, DepthFirstList[Elem]] = {
+    CBF.asInstanceOf[CanBuildFrom[From, Elem, DepthFirstList[Elem]]]
   }
 }
 
-case object StacklessNil extends StacklessList[Nothing] {
-  override protected[depthfirst] def withOps[B](ops: StacklessList[Op]): StacklessList[B] = this
+case object DepthFirstNil extends DepthFirstList[Nothing] {
+  override protected[depthfirst] def withOps[B](ops: DepthFirstList[Op]): DepthFirstList[B] = this
 
-  override private[depthfirst] val ops = StacklessNil
+  override private[depthfirst] val ops = DepthFirstNil
 
   override protected val valuesIterator: Iterator[Nothing] = Iterator.empty
 
-  override protected def appendOp[B](op: Op): StacklessList[B] = StacklessNil
+  override protected def appendOp[B](op: Op): DepthFirstList[B] = DepthFirstNil
 
   override def head: Nothing =
     throw new UnsupportedOperationException
 
-  override def tail: StacklessList[Nothing] =
+  override def tail: DepthFirstList[Nothing] =
     throw new UnsupportedOperationException
 
   override def toIterator: Iterator[Nothing] = Iterator.empty
 
-  override def reverse: StacklessList[Nothing] = this
+  override def reverse: DepthFirstList[Nothing] = this
 
   override val isEmpty: Boolean = true
 
-  def ++[A](those: StacklessList[A]): StacklessList[A] = {
+  def ++[A](those: DepthFirstList[A]): DepthFirstList[A] = {
     those
   }
 
   override def :+[B >: Nothing](that: B) = {
-    StacklessCons(that, StacklessNil)
+    DepthFirstCons(that, DepthFirstNil)
   }
 
   override val toString = "StacklessList()"
 }
 
-final case class StacklessCons[A] private[depthfirst] (
+final case class DepthFirstCons[A] private[depthfirst] (
   override val head: A,
-  private[depthfirst] var tl: StacklessList[A],
-  override private[depthfirst] val ops: StacklessList[Op]
-) extends StacklessList[A] {
+  private[depthfirst] var tl: DepthFirstList[A],
+  override private[depthfirst] val ops: DepthFirstList[Op]
+) extends DepthFirstList[A] {
   dfCons =>
 
-  override protected[depthfirst] def withOps[B](ops: StacklessList[Op]): StacklessList[B] =
-    new StacklessCons(head, tl, ops).asInstanceOf[StacklessList[B]]
+  override protected[depthfirst] def withOps[B](ops: DepthFirstList[Op]): DepthFirstList[B] =
+    new DepthFirstCons(head, tl, ops).asInstanceOf[DepthFirstList[B]]
 
-  override def tail: StacklessList[A] = {
+  override def tail: DepthFirstList[A] = {
     if (tl.isEmpty) {
-      StacklessNil
+      DepthFirstNil
     } else if (tl.ops eq ops)
       tl
-    else new StacklessCons[A](tl.head, tl.asInstanceOf[StacklessCons[A]].tl, ops)
+    else new DepthFirstCons[A](tl.head, tl.asInstanceOf[DepthFirstCons[A]].tl, ops)
   }
 
   override protected def valuesIterator: Iterator[Any] =
     new Iterator[Any] {
-      var here: StacklessList[A] = dfCons
+      var here: DepthFirstList[A] = dfCons
 
       override def hasNext: Boolean = here.nonEmpty
 
@@ -181,7 +181,7 @@ final case class StacklessCons[A] private[depthfirst] (
         } else {
           //avoiding pattern matching gives some performance
           //yes, this is a hot spot
-          val hereCons = here.asInstanceOf[StacklessCons[A]]
+          val hereCons = here.asInstanceOf[DepthFirstCons[A]]
           val head = here.head
           here = hereCons.tl
           head
@@ -189,18 +189,18 @@ final case class StacklessCons[A] private[depthfirst] (
       }
     }
 
-  override protected def appendOp[B](op: Op): StacklessList[B] =
-    new StacklessCons[B](head.asInstanceOf[B], tl.asInstanceOf[StacklessList[B]], StacklessCons(op, ops))
+  override protected def appendOp[B](op: Op): DepthFirstList[B] =
+    new DepthFirstCons[B](head.asInstanceOf[B], tl.asInstanceOf[DepthFirstList[B]], DepthFirstCons(op, ops))
 
   override def toIterator: Iterator[A] =
     DepthFirst.iterator(valuesIterator, ops)
 
-  override def reverse: StacklessList[A] = {
-    var result: StacklessList[A] = StacklessNil
-    var here: StacklessList[A] = this
-    var ops: StacklessList[Op] = here.ops
+  override def reverse: DepthFirstList[A] = {
+    var result: DepthFirstList[A] = DepthFirstNil
+    var here: DepthFirstList[A] = this
+    var ops: DepthFirstList[Op] = here.ops
     while (here.nonEmpty) {
-      result = StacklessCons(here.head, result, ops)
+      result = DepthFirstCons(here.head, result, ops)
       here = here.tail
       if (here.ops.nonEmpty && (here.ops ne ops))
         ops = here.ops
@@ -211,11 +211,11 @@ final case class StacklessCons[A] private[depthfirst] (
 
   override val isEmpty = false
 
-  def ++(those: StacklessList[A]): StacklessList[A] = {
+  def ++(those: DepthFirstList[A]): DepthFirstList[A] = {
     if (those.isEmpty) {
       this
     } else {
-      val builder = new StacklessList.Buffer[A]
+      val builder = new DepthFirstList.Buffer[A]
       for (value <- this)
         builder += value
       for (value <- those)
@@ -225,8 +225,8 @@ final case class StacklessCons[A] private[depthfirst] (
     }
   }
 
-  override def :+[B >: A](that: B): StacklessList[B] = {
-    val b = new StacklessList.Buffer[B]
+  override def :+[B >: A](that: B): DepthFirstList[B] = {
+    val b = new DepthFirstList.Buffer[B]
     for (elem <- this)
       b += elem
     b += that
@@ -239,7 +239,7 @@ final case class StacklessCons[A] private[depthfirst] (
 
   override def equals(obj: scala.Any) = {
     obj match {
-      case other: StacklessList[Any] =>
+      case other: DepthFirstList[Any] =>
         val otherIterator = other.toIterator
         val thisIterator = toIterator
 
@@ -253,15 +253,15 @@ final case class StacklessCons[A] private[depthfirst] (
   }
 }
 
-object StacklessCons {
-  def apply[A](head: A, tail: StacklessList[A]): StacklessList[A] =
-    new StacklessCons[A](head, tail, StacklessNil)
+object DepthFirstCons {
+  def apply[A](head: A, tail: DepthFirstList[A]): DepthFirstList[A] =
+    new DepthFirstCons[A](head, tail, DepthFirstNil)
 
-  def unapply[A](t: StacklessList[A]): Option[(A, StacklessList[A])] =
+  def unapply[A](t: DepthFirstList[A]): Option[(A, DepthFirstList[A])] =
     t match {
-      case StacklessNil =>
+      case DepthFirstNil =>
         None
-      case c: StacklessCons[A] =>
+      case c: DepthFirstCons[A] =>
         Some((c.head, c.tail))
     }
 }

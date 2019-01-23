@@ -4,13 +4,13 @@ by Jeff Shaw
 
 # Motivation
 
-While thinking about data locality, performance, and flatMap, I created an implementation of flatMap that is independent of the collection type, and faster than the usual method for large numbers of flatMaps. Basically it eliminates intermediate collections. Use it when you have a large number of chained flatMaps.
+While thinking about data locality, performance, and flatMap, I created an implementation of flatMap that is independent of the collection type, and faster than the usual method for large numbers of flatMaps. Use it when you have a large number of chained flatMaps.
 
 # Implementation
 
 I created a run-time for Scala's `for` syntax operations that performs them in a depth-first manner. It uses a stack of iterators. A stack element is an operation to perform, along with the values for the operation. When a value is requested, operations are performed until a value without no further operations is found.
 
-Clever readers will realize that this is similar to the way Stream works. If you have a Stream that is the result of various operations, and then ask for an element, the data structure will perform the minimum work to get it.
+This is similar to the way Stream works. If you have a Stream that is the result of various operations, and then ask for an element, the data structure will perform the minimum work to get it.
 
 I have not analyzed the memory use of DepthFirst.
 
@@ -33,12 +33,10 @@ import me.jeffshaw.depthfirst.DepthFirst
 
 val vv = Vector(1,2,3)
 
-def bind(x: Int): Vector[Int] = Vector(x)
-
 for {
   v0 <- DepthFirst(vv)
-  v1 <- bind(v0)
-  v2 <- bind(v1)
+  v1 <- Vector(v0)
+  v2 <- Vector(v1)
 } println(v2)
 ```
 
@@ -49,13 +47,11 @@ import me.jeffshaw.depthfirst.DepthFirst
 
 val vv = Vector(1,2,3)
 
-def bind(x: Int): Vector[Int] = Vector(x)
-
 val vv_ = {
   for {
     v0 <- DepthFirst(vv)
-    v1 <- bind(v0)
-    v2 <- bind(v1)
+    v1 <- Vector(v0)
+    v2 <- Vector(v1)
   } yield v2
 }.toVector
 

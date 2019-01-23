@@ -4,7 +4,7 @@ private class Stack[Out] private (
   /*
   A benchmark between List and Vector showed that List is faster.
    */
-  private var stack: StacklessList[Elem]
+  private var stack: DepthFirstList[Elem]
 ) {
   def isFinished: Boolean = stack.isEmpty
 
@@ -28,7 +28,7 @@ private class Stack[Out] private (
               } else {
                 val nextF = ops.head
                 val remainingFs = ops.tail
-                stack = StacklessCons(nextF.toElem(remainingFs, Iterator(value)), stack)
+                stack = DepthFirstCons(nextF.toElem(remainingFs, Iterator(value)), stack)
                 Iterator.empty
               }
             } else {
@@ -44,7 +44,7 @@ private class Stack[Out] private (
             } else {
               val nextF = ops.head
               val remainingFs = ops.tail
-              stack = StacklessCons(nextF.toElem(remainingFs, fResults), stack)
+              stack = DepthFirstCons(nextF.toElem(remainingFs, fResults), stack)
               Iterator.empty
             }
 
@@ -57,7 +57,7 @@ private class Stack[Out] private (
             } else {
               val nextF = ops.head
               val remainingFs = ops.tail
-              stack = StacklessCons(nextF.toElem(remainingFs, Iterator(result)), stack)
+              stack = DepthFirstCons(nextF.toElem(remainingFs, Iterator(result)), stack)
               Iterator.empty
             }
         }
@@ -79,6 +79,6 @@ private class Stack[Out] private (
 
 private object Stack {
   def apply[Out](elem: Elem): Stack[Out] = {
-    new Stack(StacklessList(elem))
+    new Stack(DepthFirstList(elem))
   }
 }

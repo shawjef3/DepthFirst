@@ -4,25 +4,25 @@ import scala.collection.GenTraversableOnce
 
 class DepthFirst[In, Out] private (
   values: GenTraversableOnce[In],
-  ops: StacklessList[Op]
+  ops: DepthFirstList[Op]
 ) extends TraversableOnce[Out] {
 
   def map[
     NextOut
   ](f: Out => NextOut
   ): DepthFirst[In, NextOut] = {
-    new DepthFirst[In, NextOut](values, StacklessCons(Op.Map(f.asInstanceOf[Any => Any]), ops))
+    new DepthFirst[In, NextOut](values, DepthFirstCons(Op.Map(f.asInstanceOf[Any => Any]), ops))
   }
 
   def flatMap[
     NextOut
   ](f: Out => GenTraversableOnce[NextOut]
   ): DepthFirst[In, NextOut] = {
-    new DepthFirst[In, NextOut](values, StacklessCons(Op.FlatMap(f.asInstanceOf[Any => GenTraversableOnce[Any]]), ops))
+    new DepthFirst[In, NextOut](values, DepthFirstCons(Op.FlatMap(f.asInstanceOf[Any => GenTraversableOnce[Any]]), ops))
   }
 
   def withFilter(f: Out => Boolean): DepthFirst[In, Out] = {
-    new DepthFirst[In, Out](values, StacklessCons(Op.Filter(f.asInstanceOf[Any => Boolean]), ops))
+    new DepthFirst[In, Out](values, DepthFirstCons(Op.Filter(f.asInstanceOf[Any => Boolean]), ops))
   }
 
   //TraversableOnce
@@ -73,11 +73,11 @@ object DepthFirst {
     In
   ](values: GenTraversableOnce[In]
   ): DepthFirst[In, In] =
-    new DepthFirst[In, In](values, StacklessList())
+    new DepthFirst[In, In](values, DepthFirstList())
 
   private[depthfirst] def iterator[In, Out](
     values: GenTraversableOnce[In],
-    ops: StacklessList[Op]
+    ops: DepthFirstList[Op]
   ): Iterator[Out] = {
     if (ops.isEmpty)
       values.toIterator.asInstanceOf[Iterator[Out]]

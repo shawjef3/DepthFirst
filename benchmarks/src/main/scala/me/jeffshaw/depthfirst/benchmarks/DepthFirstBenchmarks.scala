@@ -1,7 +1,7 @@
 package me.jeffshaw.depthfirst.benchmarks
 
 import java.util.concurrent.TimeUnit
-import me.jeffshaw.stackless.Stackless
+import me.jeffshaw.depthfirst.DepthFirst
 import org.openjdk.jmh.annotations.{State => JmhState, _}
 import scala.collection.generic.CanBuildFrom
 
@@ -100,37 +100,37 @@ class DepthFirstBenchmarks extends HighPriority {
   @Benchmark
   @BenchmarkMode(Array(Mode.AverageTime))
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
-  def stacklessList(): Unit = {
+  def depthFirstList(): Unit = {
     iterationCount match {
       case 1 =>
-        stacklessList1()
+        depthFirstList1()
       case 2 =>
-        stacklessList2()
+        depthFirstList2()
       case 4 =>
-        stacklessList4()
+        depthFirstList4()
       case 8 =>
-        stacklessList8()
+        depthFirstList8()
     }
   }
 
-  def stacklessList1(): Unit = {
+  def depthFirstList1(): Unit = {
     for {
-      x0 <- Stackless(valuesList)
+      x0 <- DepthFirst(valuesList)
       x1 <- duplicate[List](x0)
     } x1
   }
 
-  def stacklessList2(): Unit = {
+  def depthFirstList2(): Unit = {
     for {
-      x0 <- Stackless(valuesList)
+      x0 <- DepthFirst(valuesList)
       x1 <- duplicate[List](x0)
       x2 <- duplicate[List](x1)
     } x2
   }
 
-  def stacklessList4(): Unit = {
+  def depthFirstList4(): Unit = {
     for {
-      x0 <- Stackless(valuesList)
+      x0 <- DepthFirst(valuesList)
       x1 <- duplicate[List](x0)
       x2 <- duplicate[List](x1)
       x3 <- duplicate[List](x2)
@@ -138,9 +138,9 @@ class DepthFirstBenchmarks extends HighPriority {
     } x4
   }
 
-  def stacklessList8(): Unit = {
+  def depthFirstList8(): Unit = {
     for {
-      x0 <- Stackless(valuesList)
+      x0 <- DepthFirst(valuesList)
       x1 <- duplicate[List](x0)
       x2 <- duplicate[List](x1)
       x3 <- duplicate[List](x2)
@@ -210,37 +210,37 @@ class DepthFirstBenchmarks extends HighPriority {
   @Benchmark
   @BenchmarkMode(Array(Mode.AverageTime))
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
-  def stacklessVector(): Unit = {
+  def depthFirstVector(): Unit = {
     iterationCount match {
       case 1 =>
-        stacklessVector1()
+        depthFirstVector1()
       case 2 =>
-        stacklessVector2()
+        depthFirstVector2()
       case 4 =>
-        stacklessVector4()
+        depthFirstVector4()
       case 8 =>
-        stacklessVector8()
+        depthFirstVector8()
     }
   }
 
-  def stacklessVector1(): Unit = {
+  def depthFirstVector1(): Unit = {
     for {
-      x0 <- Stackless(valuesVector)
+      x0 <- DepthFirst(valuesVector)
       x1 <- duplicate[Vector](x0)
     } x1
   }
 
-  def stacklessVector2(): Unit = {
+  def depthFirstVector2(): Unit = {
     for {
-      x0 <- Stackless(valuesVector)
+      x0 <- DepthFirst(valuesVector)
       x1 <- duplicate[Vector](x0)
       x2 <- duplicate[Vector](x1)
     } x2
   }
 
-  def stacklessVector4(): Unit = {
+  def depthFirstVector4(): Unit = {
     for {
-      x0 <- Stackless(valuesVector)
+      x0 <- DepthFirst(valuesVector)
       x1 <- duplicate[Vector](x0)
       x2 <- duplicate[Vector](x1)
       x3 <- duplicate[Vector](x2)
@@ -248,9 +248,9 @@ class DepthFirstBenchmarks extends HighPriority {
     } x4
   }
 
-  def stacklessVector8(): Unit = {
+  def depthFirstVector8(): Unit = {
     for {
-      x0 <- Stackless(valuesVector)
+      x0 <- DepthFirst(valuesVector)
       x1 <- duplicate[Vector](x0)
       x2 <- duplicate[Vector](x1)
       x3 <- duplicate[Vector](x2)

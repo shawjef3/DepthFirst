@@ -1,7 +1,7 @@
 package me.jeffshaw.depthfirst.benchmarks
 
 import java.util.concurrent.TimeUnit
-import me.jeffshaw.depthfirst.StacklessList
+import me.jeffshaw.depthfirst.DepthFirstList
 import org.openjdk.jmh.annotations._
 import org.openjdk.jmh.infra.Blackhole
 
@@ -18,15 +18,15 @@ class DepthFirstListBenchmarks extends HighPriority {
   @Param(Array("1", "2", "4", "8"))
   var iterationCount: Int = _
 
-  var values: StacklessList[Int] = _
+  var values: DepthFirstList[Int] = _
 
   @Setup(Level.Iteration)
   def setup(): Unit = {
-    values = StacklessList(BenchmarkValues.values.take(valueCount): _*)
+    values = DepthFirstList(BenchmarkValues.values.take(valueCount): _*)
   }
 
-  def duplicate(x: Int): StacklessList[Int] = {
-    val builder = new StacklessList.Buffer[Int]
+  def duplicate(x: Int): DepthFirstList[Int] = {
+    val builder = new DepthFirstList.Buffer[Int]
     for (_ <- 0 until duplicationFactor)
       builder += x
     builder.result()
@@ -35,27 +35,27 @@ class DepthFirstListBenchmarks extends HighPriority {
   @Benchmark
   @BenchmarkMode(Array(Mode.AverageTime))
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
-  def stacklessList(): Unit = {
+  def depthFirstList(): Unit = {
     iterationCount match {
       case 1 =>
-        stacklessList1()
+        depthFirstList1()
       case 2 =>
-        stacklessList2()
+        depthFirstList2()
       case 4 =>
-        stacklessList4()
+        depthFirstList4()
       case 8 =>
-        stacklessList8()
+        depthFirstList8()
     }
   }
 
-  def stacklessList1(): Unit = {
+  def depthFirstList1(): Unit = {
     for {
       x0 <- values
       x1 <- duplicate(x0)
     } x1
   }
 
-  def stacklessList2(): Unit = {
+  def depthFirstList2(): Unit = {
     for {
       x0 <- values
       x1 <- duplicate(x0)
@@ -63,7 +63,7 @@ class DepthFirstListBenchmarks extends HighPriority {
     } x2
   }
 
-  def stacklessList4(): Unit = {
+  def depthFirstList4(): Unit = {
     for {
       x0 <- values
       x1 <- duplicate(x0)
@@ -73,7 +73,7 @@ class DepthFirstListBenchmarks extends HighPriority {
     } x4
   }
 
-  def stacklessList8(): Unit = {
+  def depthFirstList8(): Unit = {
     for {
       x0 <- values
       x1 <- duplicate(x0)

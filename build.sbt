@@ -1,9 +1,9 @@
-lazy val stackless = project.in(file("stackless"))
+lazy val depthFirst = project.in(file("depth-first"))
 
-lazy val benchmarks = project.in(file("benchmarks")).dependsOn(stackless)
+lazy val benchmarks = project.in(file("benchmarks")).dependsOn(depthFirst)
 
-lazy val examples = project.in(file("examples")).dependsOn(stackless)
+lazy val examples = project.in(file("examples")).dependsOn(depthFirst)
 
 lazy val depthFirstAggregate =
   project.in(file(".")).
-  aggregate(stackless, benchmarks, examples)
+  aggregate(depthFirst, benchmarks, examples)

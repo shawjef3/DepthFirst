@@ -19,7 +19,7 @@ case class ContourListPlot(
   def mathematica(comparison: ContourListPlot.Comparison): String = {
     val values = mathematicaValues.map(_.mkString("{", ",", "}")).mkString("{", ",", "}")
     val cacheMb = cache / 1024 / 1024
-    val plotLabel = "\"" + s"${comparison.base} vs ${comparison.comparison},\\ncache ${cacheMb}MB, duplication factor $duplicationFactor" + "\""
+    val plotLabel = "\"" + s"${comparison.base}\\nvs\\n${comparison.comparison},\\ncache ${cacheMb}MB, duplication factor $duplicationFactor" + "\""
     s"""<| "values" ->  $values, "plotLabel" -> $plotLabel |>"""
   }
 }
@@ -61,7 +61,7 @@ object ContourListPlot {
     )
 
   def listContourPlot(comparison: Comparison, plotData: Vector[ContourListPlot]): String = {
-    val dataSets = plotData.map(_.mathematica(comparison)).mkString("{", ",", "}")
+    val dataSets = plotData.filter(_.mathematicaValues.nonEmpty).map(_.mathematica(comparison)).mkString("{", ",", "}")
     s"""(* ${comparison.base} vs ${comparison.comparison}*)
        |
        |dataSets := $dataSets
@@ -86,7 +86,7 @@ object ContourListPlot {
         comparison <- comparisons
       } {
         val dataSets = list.onProduct(comparison).vector()
-        println(listContourPlot( comparison, dataSets))
+        println(listContourPlot(comparison, dataSets))
       }
     }
   }

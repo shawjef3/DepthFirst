@@ -13,7 +13,7 @@ class DepthFirstBenchmarks extends HighPriority {
   var valueCount: Int = _
 
   var values: Array[Int] = _
-
+collection.mutable.ListBuffer
   var valuesVector: Vector[Int] = _
 
   var valuesList: List[Int] = _
@@ -226,7 +226,7 @@ class DepthFirstBenchmarks extends HighPriority {
   def depthFirstVector1(): Unit = {
     for {
       x0 <- DepthFirst(valuesVector)
-      x1 <- duplicate[Vector](x0)
+      x1 <- DepthFirst(duplicate[Vector](x0))
     } x1
   }
 
